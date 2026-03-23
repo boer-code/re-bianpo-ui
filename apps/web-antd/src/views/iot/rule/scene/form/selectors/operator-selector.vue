@@ -237,12 +237,13 @@ watch(
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full min-w-0">
     <Select
-      v-model="localValue"
+      v-model:value="localValue"
       placeholder="请选择操作符"
       @change="handleChange"
       class="w-full"
+      style="width: 100%; min-width: 0"
     >
       <Select.Option
         v-for="operator in availableOperators"
@@ -271,8 +272,11 @@ watch(
 </template>
 
 <style scoped>
-:deep(.el-select-dropdown__item) {
-  height: auto;
-  padding: 8px 20px;
+:deep(.ant-select-item-option-content) {
+  white-space: normal;
+}
+:deep(.ant-select-item) {
+  min-height: auto;
+  padding-block: 8px;
 }
 </style>

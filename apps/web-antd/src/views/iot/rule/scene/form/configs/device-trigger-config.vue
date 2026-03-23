@@ -43,7 +43,7 @@ function updateCondition(condition: RuleSceneApi.Trigger) {
  * @param type 触发器类型
  */
 function handleTriggerTypeChange(type: number) {
-  trigger.value.type = type.toString();
+  trigger.value.type = type;
   emit('triggerTypeChange', type);
 }
 
@@ -93,29 +93,27 @@ function removeConditionGroup() {
 </script>
 
 <template>
-  <div class="gap-16px flex flex-col">
+  <div class="flex flex-col gap-4">
     <!-- 主条件配置 - 默认直接展示 -->
-    <div class="space-y-16px">
+    <div class="flex flex-col gap-4">
       <!-- 主条件配置 -->
-      <div class="gap-16px flex flex-col">
-        <!-- 主条件配置 -->
-        <div class="space-y-16px">
-          <!-- 主条件头部 - 与附加条件组保持一致的绿色风格 -->
+      <div class="space-y-4">
+          <!-- 主条件头部 -->
           <div
-            class="p-16px rounded-8px flex items-center justify-between border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50"
+            class="flex items-center justify-between rounded-lg border border-border bg-primary/5 p-4"
           >
-            <div class="gap-12px flex items-center">
+            <div class="flex items-center gap-3">
               <div
-                class="gap-8px text-16px font-600 flex items-center text-green-700"
+                class="flex items-center gap-2 text-base font-semibold text-primary"
               >
                 <div
-                  class="w-24px h-24px text-12px flex items-center justify-center rounded-full bg-green-500 font-bold text-white"
+                  class="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
                 >
                   主
                 </div>
                 <span>主条件</span>
               </div>
-              <el-tag size="small" type="success">必须满足</el-tag>
+              <Tag color="success">必须满足</Tag>
             </div>
           </div>
 
@@ -126,33 +124,30 @@ function removeConditionGroup() {
             :trigger-type="trigger.type as any"
             @trigger-type-change="handleTriggerTypeChange"
           />
-        </div>
       </div>
     </div>
 
     <!-- 条件组配置 -->
-    <div class="space-y-16px">
-      <!-- 条件组配置 -->
-      <div class="gap-16px flex flex-col">
-        <!-- 条件组容器头部 -->
+    <div class="flex flex-col gap-4">
+      <!-- 条件组容器头部 -->
         <div
-          class="p-16px rounded-8px flex items-center justify-between border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50"
+          class="flex items-center justify-between rounded-lg border border-border bg-primary/5 p-4"
         >
-          <div class="gap-12px flex items-center">
+          <div class="flex items-center gap-3">
             <div
-              class="gap-8px text-16px font-600 flex items-center text-green-700"
+              class="flex items-center gap-2 text-base font-semibold text-primary"
             >
               <div
-                class="w-24px h-24px text-12px flex items-center justify-center rounded-full bg-green-500 font-bold text-white"
+                class="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
               >
                 组
               </div>
               <span>附加条件组</span>
             </div>
-            <el-tag size="small" type="success">与"主条件"为且关系</el-tag>
-            <el-tag size="small" type="info">
+            <Tag color="success">与"主条件"为且关系</Tag>
+            <Tag size="small" type="info" class="ml-2">
               {{ trigger.conditionGroups?.length || 0 }} 个子条件组
-            </el-tag>
+            </Tag>
           </div>
           <div class="gap-8px flex items-center">
             <Button
@@ -164,7 +159,7 @@ function removeConditionGroup() {
               <IconifyIcon icon="lucide:plus" />
               添加子条件组
             </Button>
-            <Button danger size="small" text @click="removeConditionGroup">
+            <Button danger size="small" type="text" @click="removeConditionGroup">
               <IconifyIcon icon="lucide:trash-2" />
               删除条件组
             </Button>
@@ -174,7 +169,7 @@ function removeConditionGroup() {
         <!-- 子条件组列表 -->
         <div
           v-if="trigger.conditionGroups && trigger.conditionGroups.length > 0"
-          class="space-y-16px"
+          class="space-y-4"
         >
           <!-- 逻辑关系说明 -->
           <div class="relative">
@@ -185,17 +180,17 @@ function removeConditionGroup() {
             >
               <!-- 子条件组容器 -->
               <div
-                class="rounded-8px border-2 border-orange-200 bg-orange-50 shadow-sm transition-shadow hover:shadow-md"
+                class="rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md"
               >
                 <div
-                  class="p-16px rounded-t-6px flex items-center justify-between border-b border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50"
+                  class="flex items-center justify-between rounded-t-lg border-b border-border bg-primary/5 p-4"
                 >
-                  <div class="gap-12px flex items-center">
+                  <div class="flex items-center gap-3">
                     <div
-                      class="gap-8px text-16px font-600 flex items-center text-orange-700"
+                      class="flex items-center gap-2 text-base font-semibold text-primary"
                     >
                       <div
-                        class="w-24px h-24px text-12px flex items-center justify-center rounded-full bg-orange-500 font-bold text-white"
+                        class="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
                       >
                         {{ subGroupIndex + 1 }}
                       </div>
@@ -211,9 +206,8 @@ function removeConditionGroup() {
                   <Button
                     danger
                     size="small"
-                    text
+                    type="text"
                     @click="removeSubGroup(subGroupIndex)"
-                    class="hover:bg-red-50"
                   >
                     <IconifyIcon icon="lucide:trash-2" />
                     删除组
@@ -233,19 +227,19 @@ function removeConditionGroup() {
               <!-- 子条件组间的'或'连接符 -->
               <div
                 v-if="subGroupIndex < trigger.conditionGroups!.length - 1"
-                class="py-12px flex items-center justify-center"
+                class="flex items-center justify-center py-3"
               >
-                <div class="gap-8px flex items-center">
+                <div class="flex items-center gap-2">
                   <!-- 连接线 -->
-                  <div class="w-32px h-1px bg-orange-300"></div>
+                  <div class="h-[1px] w-8 bg-border"></div>
                   <!-- 或标签 -->
                   <div
-                    class="px-16px py-6px rounded-full border-2 border-orange-300 bg-orange-100"
+                    class="rounded-full border border-border bg-muted px-4 py-1.5"
                   >
-                    <span class="text-14px font-600 text-orange-600">或</span>
+                    <span class="text-sm font-semibold text-muted-foreground">或</span>
                   </div>
                   <!-- 连接线 -->
-                  <div class="w-32px h-1px bg-orange-300"></div>
+                  <div class="h-[1px] w-8 bg-border"></div>
                 </div>
               </div>
             </div>
@@ -255,17 +249,16 @@ function removeConditionGroup() {
         <!-- 空状态 -->
         <div
           v-else
-          class="p-24px rounded-8px border-2 border-dashed border-orange-200 bg-orange-50 text-center"
+          class="rounded-lg border border-dashed border-border bg-background p-6 text-center"
         >
-          <div class="gap-12px flex flex-col items-center">
-            <IconifyIcon icon="lucide:plus" class="text-32px text-orange-400" />
-            <div class="text-orange-600">
-              <p class="text-14px font-500 mb-4px">暂无子条件组</p>
-              <p class="text-12px">点击上方"添加子条件组"按钮开始配置</p>
+          <div class="flex flex-col items-center gap-3">
+            <IconifyIcon icon="lucide:plus" class="text-[32px] text-muted-foreground" />
+            <div class="text-muted-foreground">
+              <p class="mb-1 text-sm font-medium">暂无子条件组</p>
+              <p class="text-xs">点击上方"添加子条件组"按钮开始配置</p>
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>

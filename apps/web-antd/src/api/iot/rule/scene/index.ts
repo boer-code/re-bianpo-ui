@@ -14,16 +14,15 @@ export namespace RuleSceneApi {
     createTime?: Date;
   }
 
-  /** 场景联动规则的触发器 */
   export interface Trigger {
-    type?: string;
+    type?: number | string;
     productId?: number;
     deviceId?: number;
     identifier?: string;
     operator?: string;
     value?: any;
     cronExpression?: string;
-    conditionGroups?: TriggerConditionGroup[];
+    conditionGroups?: TriggerCondition[][];
   }
 
   /** 场景联动规则的触发条件组 */
@@ -32,19 +31,19 @@ export namespace RuleSceneApi {
     operator?: string;
   }
 
-  /**  场景联动规则的触发条件 */
   export interface TriggerCondition {
     productId?: number;
     deviceId?: number;
     identifier?: string;
     operator?: string;
     value?: any;
-    type?: string;
+    type?: number | string;
+    param?: string;
   }
 
   /** 场景联动规则的动作 */
   export interface Action {
-    type?: string;
+    type?: number | string;
     productId?: number;
     deviceId?: number;
     identifier?: string;
@@ -65,16 +64,15 @@ export interface IotSceneRule {
   createTime?: Date;
 }
 
-/** IoT 场景联动规则触发器 */
 export interface Trigger {
-  type?: string;
+  type?: number | string;
   productId?: number;
   deviceId?: number;
   identifier?: string;
   operator?: string;
   value?: any;
   cronExpression?: string;
-  conditionGroups?: TriggerConditionGroup[];
+  conditionGroups?: TriggerCondition[][];
 }
 
 /** IoT 场景联动规则触发条件组 */
@@ -83,20 +81,19 @@ export interface TriggerConditionGroup {
   operator?: string;
 }
 
-/** IoT 场景联动规则触发条件 */
 export interface TriggerCondition {
   productId?: number;
   deviceId?: number;
   identifier?: string;
   operator?: string;
   value?: any;
-  type?: string;
+  type?: number | string;
   param?: string;
 }
 
 /** IoT 场景联动规则动作 */
 export interface Action {
-  type?: string;
+  type?: number | string;
   productId?: number;
   deviceId?: number;
   identifier?: string;

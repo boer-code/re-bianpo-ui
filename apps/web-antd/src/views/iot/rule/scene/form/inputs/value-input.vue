@@ -2,8 +2,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import { IconifyIcon } from '@vben/icons';
+
 import { useVModel } from '@vueuse/core';
-import { DatePicker, Input, Select, Tag, Tooltip } from 'ant-design-vue';
+import { DatePicker, Input, InputNumber, Select, Tag, Tooltip } from 'ant-design-vue';
 
 import {
   IoTDataSpecsDataTypeEnum,
@@ -37,6 +39,20 @@ const rangeEnd = ref(''); // 范围结束值
 const dateValue = ref(''); // 日期值
 const numberValue = ref<number>(); // 数字值
 
+const Op = IotRuleSceneTriggerConditionParameterOperatorEnum;
+
+/** 列表类操作符：在之中 / 不在之中（需逗号分隔多值，不能与数字 InputNumber 混用） */
+const isListOperator = computed(() => {
+  const op = props.operator;
+  return op === Op.IN.value || op === Op.NOT_IN.value;
+});
+
+/** 范围类操作符 */
+const isRangeOperator = computed(() => {
+  const op = props.operator;
+  return op === Op.BETWEEN.value || op === Op.NOT_BETWEEN.value;
+});
+
 /** 计算属性：枚举选项 */
 const enumOptions = computed(() => {
   if (props.propertyConfig?.enum) {
@@ -50,11 +66,7 @@ const enumOptions = computed(() => {
 
 /** 计算属性：列表预览 */
 const listPreview = computed(() => {
-  if (
-    props.operator ===
-      IotRuleSceneTriggerConditionParameterOperatorEnum.IN.value &&
-    localValue.value
-  ) {
+  if (isListOperator.value && localValue.value) {
     return localValue.value
       .split(',')
       .map((item) => item.trim())
@@ -133,7 +145,7 @@ function handleDateChange(value: any) {
 }
 
 /** 处理数字变化事件 */
-function handleNumberChange(value: number | undefined) {
+function handleNumberChange(value: any) {
   localValue.value = value?.toString() || '';
 }
 
@@ -155,7 +167,7 @@ watch(
     <!-- 布尔值选择 -->
     <Select
       v-if="propertyType === IoTDataSpecsDataTypeEnum.BOOL"
-      v-model="localValue"
+      v-model:value="localValue"
       placeholder="请选择布尔值"
       class="w-full!"
     >
@@ -168,7 +180,7 @@ watch(
       v-else-if="
         propertyType === IoTDataSpecsDataTypeEnum.ENUM && enumOptions.length > 0
       "
-      v-model="localValue"
+      v-model:value="localValue"
       placeholder="请选择枚举值"
       class="w-full!"
     >
@@ -180,16 +192,13 @@ watch(
       />
     </Select>
 
-    <!-- 范围输入 (between 操作符) -->
+    <!-- 范围输入 (between / not between) -->
     <div
-      v-else-if="
-        operator ===
-        IotRuleSceneTriggerConditionParameterOperatorEnum.BETWEEN.value
-      "
+      v-else-if="isRangeOperator"
       class="w-full! flex items-center gap-2"
     >
       <Input
-        v-model="rangeStart"
+        v-model:value="rangeStart"
         :type="getInputType()"
         placeholder="最小值"
         @input="handleRangeChange"
@@ -198,7 +207,7 @@ watch(
       />
       <span class="whitespace-nowrap text-xs text-secondary"> 至 </span>
       <Input
-        v-model="rangeEnd"
+        v-model:value="rangeEnd"
         :type="getInputType()"
         placeholder="最大值"
         @input="handleRangeChange"
@@ -206,20 +215,18 @@ watch(
       />
     </div>
 
-    <!-- 列表输入 (in 操作符) -->
-    <div
-      v-else-if="
-        operator === IotRuleSceneTriggerConditionParameterOperatorEnum.IN.value
-      "
-      class="w-full!"
-    >
+    <!-- 列表输入 (in / not in) -->
+    <div v-else-if="isListOperator" class="w-full!">
       <Input
-        v-model="localValue"
+        v-model:value="localValue"
         placeholder="请输入值列表，用逗号分隔"
         class="w-full!"
       >
         <template #suffix>
-          <Tooltip content="多个值用逗号分隔，如：1,2,3" placement="top">
+          <Tooltip
+            content="多个值用逗号分隔，如：1,2,3（整数/浮点/文本/枚举均适用）"
+            placement="top"
+          >
             <IconifyIcon
               icon="ep:question-filled"
               class="cursor-help text-gray-400"
@@ -246,7 +253,7 @@ watch(
     <!-- 日期时间输入 -->
     <DatePicker
       v-else-if="propertyType === IoTDataSpecsDataTypeEnum.DATE"
-      v-model="dateValue"
+      v-model:value="dateValue"
       type="datetime"
       placeholder="请选择日期时间"
       format="YYYY-MM-DD HH:mm:ss"
@@ -255,23 +262,24 @@ watch(
       class="w-full!"
     />
 
-    <!-- 数字输入 -->
-    <Input.Number
+    <!-- 数字输入（Ant Design InputNumber 默认宽度很窄，需显式拉满） -->
+    <InputNumber
       v-else-if="isNumericType()"
-      v-model="numberValue"
+      v-model:value="numberValue"
       :precision="getPrecision()"
       :step="getStep()"
       :min="getMin()"
       :max="getMax()"
       placeholder="请输入数值"
       @change="handleNumberChange"
-      class="w-full!"
+      class="!w-full"
+      style="width: 100%; max-width: 100%"
     />
 
     <!-- 文本输入 -->
     <Input
       v-else
-      v-model="localValue"
+      v-model:value="localValue"
       :type="getInputType()"
       :placeholder="getPlaceholder()"
       class="w-full!"

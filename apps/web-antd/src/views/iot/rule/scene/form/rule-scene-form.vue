@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { IotSceneRule } from '#/api/iot/rule/scene';
 
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 
+import { useVbenDrawer } from '@vben/common-ui';
 import { CommonStatusEnum } from '@vben/constants';
-import { IconifyIcon } from '@vben/icons';
 
-import { useVModel } from '@vueuse/core';
-import { Button, Drawer, Form, message } from 'ant-design-vue';
+import { Form, message } from 'ant-design-vue';
 
-import { createSceneRule, updateSceneRule } from '#/api/iot/rule/scene';
+import {
+  createSceneRule,
+  getSceneRule,
+  updateSceneRule,
+} from '#/api/iot/rule/scene';
 import {
   IotRuleSceneActionTypeEnum,
   IotRuleSceneTriggerTypeEnum,
@@ -23,21 +26,9 @@ import TriggerSection from './sections/trigger-section.vue';
 /** IoT 场景联动规则表单 - 主表单组件 */
 defineOptions({ name: 'RuleSceneForm' });
 
-/** 组件属性定义 */
-const props = defineProps<{
-  /** 抽屉显示状态 */
-  modelValue: boolean;
-  /** 编辑的场景联动规则数据 */
-  ruleScene?: IotSceneRule;
-}>();
-
-/** 组件事件定义 */
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void;
   (e: 'success'): void;
 }>();
-
-const drawerVisible = useVModel(props, 'modelValue', emit); // 抽屉显示状态
 
 /**
  * 创建默认的表单数据
@@ -50,7 +41,7 @@ function createDefaultFormData(): IotSceneRule {
     status: CommonStatusEnum.ENABLE, // 默认启用状态
     triggers: [
       {
-        type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST.toString(),
+        type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST,
         productId: undefined,
         deviceId: undefined,
         identifier: undefined,
@@ -223,119 +214,106 @@ const formRules = reactive({
   actions: [{ required: true, validator: validateActions, trigger: 'change' }],
 }); // 表单校验规则
 
-const submitLoading = ref(false); // 提交加载状态
 const isEdit = ref(false); // 是否为编辑模式
 const drawerTitle = computed(() =>
   isEdit.value ? '编辑场景联动规则' : '新增场景联动规则',
 ); // 抽屉标题
 
-/** 提交表单 */
-async function handleSubmit() {
-  // 校验表单
-  if (!formRef.value) return;
-  const valid = await formRef.value.validate();
-  if (!valid) {
-    return;
-  }
-
-  // 提交请求
-  submitLoading.value = true;
-  try {
-    if (isEdit.value) {
-      // 更新场景联动规则
-      await updateSceneRule(formData.value);
-      message.success('更新成功');
-    } else {
-      // 创建场景联动规则
-      await createSceneRule(formData.value);
-      message.success('创建成功');
+const [Drawer, drawerApi] = useVbenDrawer({
+  onCancel() {
+    drawerApi.close();
+  },
+  async onConfirm() {
+    // 校验表单
+    if (!formRef.value) return;
+    try {
+      await formRef.value.validate();
+    } catch (e: any) {
+      // Find the first error message and show it
+      const errorFields = e?.errorFields;
+      if (errorFields && errorFields.length > 0) {
+        message.error(errorFields[0].errors[0]);
+      }
+      return;
     }
 
-    // 关闭抽屉并触发成功事件
-    drawerVisible.value = false;
-    emit('success');
-  } catch (error) {
-    console.error('保存失败:', error);
-    message.error(isEdit.value ? '更新失败' : '创建失败');
-  } finally {
-    submitLoading.value = false;
-  }
-}
+    // 提交请求
+    drawerApi.lock();
+    try {
+      if (isEdit.value) {
+        // 更新场景联动规则
+        await updateSceneRule(formData.value);
+        message.success('更新成功');
+      } else {
+        // 创建场景联动规则
+        await createSceneRule(formData.value);
+        message.success('创建成功');
+      }
 
-/** 处理抽屉关闭事件 */
-const handleClose = () => {
-  drawerVisible.value = false;
-};
-
-/** 初始化表单数据 */
-function initFormData() {
-  if (props.ruleScene) {
-    // 编辑模式：数据结构已对齐，直接使用后端数据
-    isEdit.value = true;
-    formData.value = {
-      ...props.ruleScene,
-      // 确保触发器数组不为空
-      triggers: (props.ruleScene.triggers?.length as any)
-        ? props.ruleScene.triggers
-        : [
-            {
-              type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST,
-              productId: undefined,
-              deviceId: undefined,
-              identifier: undefined,
-              operator: undefined,
-              value: undefined,
-              cronExpression: undefined,
-              conditionGroups: [],
-            },
-          ],
-      // 确保执行器数组不为空
-      actions: props.ruleScene.actions || [],
-    };
-  } else {
-    // 新增模式：使用默认数据
-    isEdit.value = false;
-    formData.value = createDefaultFormData();
-  }
-}
-
-/** 监听抽屉显示 */
-watch(drawerVisible, async (visible) => {
-  if (visible) {
-    initFormData();
-    // 重置表单验证状态
-    await nextTick();
-    formRef.value?.clearValidate();
-  }
-});
-
-/** 监听编辑数据变化 */
-watch(
-  () => props.ruleScene,
-  () => {
-    if (drawerVisible.value) {
-      initFormData();
+      // 关闭抽屉并触发成功事件
+      emit('success');
+      drawerApi.close();
+    } catch (error) {
+      console.error('保存失败:', error);
+      message.error(isEdit.value ? '更新失败' : '创建失败');
+    } finally {
+      drawerApi.unlock();
     }
   },
-  { deep: true },
-);
+  async onOpenChange(isOpen: boolean) {
+    if (isOpen) {
+      const data = drawerApi.getData();
+      
+      // 重置表单验证状态
+      await nextTick();
+      formRef.value?.clearValidate();
+
+      if (data?.id) {
+        // 编辑模式：拉取详情数据
+        isEdit.value = true;
+        try {
+          const ruleScene = await getSceneRule(data.id);
+          formData.value = {
+            ...ruleScene,
+            // 确保触发器数组不为空
+            triggers: ruleScene.triggers?.length
+              ? ruleScene.triggers
+              : [
+                  {
+                    type: IotRuleSceneTriggerTypeEnum.DEVICE_PROPERTY_POST,
+                    productId: undefined,
+                    deviceId: undefined,
+                    identifier: undefined,
+                    operator: undefined,
+                    value: undefined,
+                    cronExpression: undefined,
+                    conditionGroups: [],
+                  },
+                ],
+            // 确保执行器数组不为空
+            actions: ruleScene.actions || [],
+          };
+        } catch (error) {
+          message.error('获取场景规则详情失败');
+          console.error(error);
+        }
+      } else {
+        // 新增模式：使用默认数据
+        isEdit.value = false;
+        formData.value = createDefaultFormData();
+      }
+    }
+  },
+});
 </script>
 
 <template>
-  <Drawer
-    v-model="drawerVisible"
-    :title="drawerTitle"
-    width="80%"
-    direction="rtl"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
-    @close="handleClose"
-  >
+  <Drawer :title="drawerTitle" class="w-[80%]">
     <Form
       ref="formRef"
       :model="formData"
       :rules="formRules as any"
-      label-width="110px"
+      :label-col="{ style: { width: '110px' } }"
     >
       <!-- 基础信息配置 -->
       <BasicInfoSection v-model="formData" :rules="formRules" />
@@ -344,17 +322,5 @@ watch(
       <!-- 执行器配置 -->
       <ActionSection v-model:actions="formData.actions as any" />
     </Form>
-    <template #footer>
-      <div class="drawer-footer">
-        <Button :disabled="submitLoading" type="primary" @click="handleSubmit">
-          <IconifyIcon icon="ep:check" />
-          确 定
-        </Button>
-        <Button @click="handleClose">
-          <IconifyIcon icon="ep:close" />
-          取 消
-        </Button>
-      </div>
-    </template>
   </Drawer>
 </template>

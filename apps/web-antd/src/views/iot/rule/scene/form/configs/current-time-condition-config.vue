@@ -176,8 +176,8 @@ watch(
       <Col :span="8">
         <Form.Item label="时间条件" required>
           <Select
-            :model-value="condition.operator"
-            @update:model-value="
+            :value="condition.operator"
+            @change="
               (value: any) => updateConditionField('operator', value)
             "
             placeholder="请选择时间条件"
@@ -208,8 +208,8 @@ watch(
         <Form.Item label="时间值" required>
           <TimePicker
             v-if="needsTimeInput"
-            :model-value="timeValue"
-            @update:model-value="handleTimeValueChange"
+            :value="timeValue"
+            @change="(_val: any, timeString: string) => handleTimeValueChange(timeString)"
             placeholder="请选择时间"
             format="HH:mm:ss"
             value-format="HH:mm:ss"
@@ -217,8 +217,8 @@ watch(
           />
           <DatePicker
             v-else-if="needsDateInput"
-            :model-value="timeValue"
-            @update:model-value="handleTimeValueChange"
+            :value="timeValue"
+            @change="(_val: any, dateString: string) => handleTimeValueChange(dateString)"
             type="datetime"
             placeholder="请选择日期时间"
             format="YYYY-MM-DD HH:mm:ss"
@@ -234,8 +234,8 @@ watch(
         <Form.Item label="结束时间" required>
           <TimePicker
             v-if="needsTimeInput"
-            :model-value="timeValue2"
-            @update:model-value="handleTimeValue2Change"
+            :value="timeValue2"
+            @change="(_val: any, timeString: string) => handleTimeValue2Change(timeString)"
             placeholder="请选择结束时间"
             format="HH:mm:ss"
             value-format="HH:mm:ss"
@@ -243,8 +243,8 @@ watch(
           />
           <DatePicker
             v-else
-            :model-value="timeValue2"
-            @update:model-value="handleTimeValue2Change"
+            :value="timeValue2"
+            @change="(_val: any, dateString: string) => handleTimeValue2Change(dateString)"
             type="datetime"
             placeholder="请选择结束日期时间"
             format="YYYY-MM-DD HH:mm:ss"

@@ -55,26 +55,27 @@ onMounted(() => {
 
 <template>
   <Select
-    :model-value="modelValue"
-    @update:model-value="handleChange"
+    :value="modelValue"
+    @change="handleChange"
     placeholder="请选择产品"
     filterable
     clearable
     class="w-full"
     :loading="productLoading"
+    option-label-prop="label"
   >
     <Select.Option
       v-for="product in productList"
       :key="product.id"
-      :label="product.name"
       :value="product.id"
+      :label="product.name"
     >
-      <div class="py-4px flex w-full items-center justify-between">
+      <div class="flex w-full items-center justify-between py-1">
         <div class="flex-1">
-          <div class="text-14px font-500 mb-2px text-primary">
+          <div class="mb-0.5 text-sm font-medium">
             {{ product.name }}
           </div>
-          <div class="text-12px text-secondary">
+          <div class="text-xs text-muted-foreground">
             {{ product.productKey }}
           </div>
         </div>

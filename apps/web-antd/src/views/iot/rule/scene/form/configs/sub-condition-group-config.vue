@@ -45,7 +45,7 @@ async function addCondition() {
   }
 
   const newCondition: TriggerCondition = {
-    type: IotRuleSceneTriggerConditionTypeEnum.DEVICE_PROPERTY.toString(), // 默认为设备属性
+    type: IotRuleSceneTriggerConditionTypeEnum.DEVICE_PROPERTY, // 默认为设备属性
     productId: undefined,
     deviceId: undefined,
     identifier: '',
@@ -87,8 +87,8 @@ function updateCondition(index: number, condition: TriggerCondition) {
     <!-- 空状态 -->
     <div v-if="!subGroup || subGroup.length === 0" class="py-6 text-center">
       <div class="flex flex-col items-center gap-3">
-        <IconifyIcon icon="lucide:plus" class="text-8 text-secondary" />
-        <div class="text-secondary">
+        <IconifyIcon icon="lucide:plus" class="text-[32px] text-muted-foreground" />
+        <div class="text-muted-foreground">
           <p class="mb-1 text-base font-bold">暂无条件</p>
           <p class="text-xs">点击下方按钮添加第一个条件</p>
         </div>
@@ -108,10 +108,10 @@ function updateCondition(index: number, condition: TriggerCondition) {
       >
         <!-- 条件配置 -->
         <div
-          class="rounded-3px bg-fill-color-blank border border-border shadow-sm"
+          class="rounded-lg border border-border bg-background shadow-sm"
         >
           <div
-            class="rounded-t-1 bg-fill-color-blank flex items-center justify-between border-b border-border p-3"
+            class="flex items-center justify-between rounded-t-lg border-b border-border bg-primary/5 p-3"
           >
             <div class="flex items-center gap-2">
               <div
@@ -126,16 +126,15 @@ function updateCondition(index: number, condition: TriggerCondition) {
             <Button
               danger
               size="small"
-              text
+              type="text"
               @click="removeCondition(conditionIndex)"
               v-if="subGroup!.length > 1"
-              class="hover:bg-red-50"
             >
               <IconifyIcon icon="lucide:trash-2" />
             </Button>
           </div>
 
-          <div class="p-3">
+          <div class="p-4">
             <ConditionConfig
               :model-value="condition"
               @update:model-value="
@@ -149,12 +148,10 @@ function updateCondition(index: number, condition: TriggerCondition) {
       </div>
 
       <!-- 添加条件按钮 -->
-      <div
-        v-if="
-          subGroup && subGroup.length > 0 && subGroup.length < maxConditions
-        "
-        class="py-4 text-center"
-      >
+        <div
+          v-if="subGroup && subGroup.length > 0 && subGroup.length < maxConditions"
+          class="py-4 text-center"
+        >
         <Button type="primary" plain @click="addCondition">
           <IconifyIcon icon="lucide:plus" />
           继续添加条件

@@ -2,9 +2,13 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { RuleSceneApi } from '#/api/iot/rule/scene';
 
-import { Page, useVbenModal } from '@vben/common-ui';
+import { ref } from 'vue';
 
-import { message } from 'ant-design-vue';
+import { Page } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
+
+import { Card, Col, message, Row } from 'ant-design-vue';
 
 import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -15,13 +19,20 @@ import {
 import { $t } from '#/locales';
 
 import { useGridColumns, useGridFormSchema } from './data';
-import Form from './modules/form.vue';
+import RuleSceneForm from './form/rule-scene-form.vue';
 
 defineOptions({ name: 'IoTRuleScene' });
 
-const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: Form,
-  destroyOnClose: true,
+const [FormDrawer, formDrawerApi] = useVbenDrawer({
+  connectedComponent: RuleSceneForm,
+});
+
+/** 统计数据 */
+const statistics = ref({
+  total: 0,
+  enabled: 0,
+  disabled: 0,
+  timerRules: 0,
 });
 
 /** 刷新表格 */
@@ -31,12 +42,12 @@ function handleRefresh() {
 
 /** 创建场景规则 */
 function handleCreate() {
-  formModalApi.setData(null).open();
+  formDrawerApi.setData({}).open();
 }
 
 /** 编辑场景规则 */
 function handleEdit(row: RuleSceneApi.SceneRule) {
-  formModalApi.setData(row).open();
+  formDrawerApi.setData({ id: row.id }).open();
 }
 
 /** 启用/停用场景规则 */
@@ -74,6 +85,23 @@ async function handleDelete(row: RuleSceneApi.SceneRule) {
   }
 }
 
+/** 检查规则是否包含定时触发器 */
+function hasTimerTrigger(rule: RuleSceneApi.SceneRule): boolean {
+  return (
+    rule.triggers?.some((trigger: any) => trigger.type === '3') || false
+  );
+}
+
+/** 更新统计数据 */
+function updateStatistics(list: RuleSceneApi.SceneRule[]) {
+  statistics.value = {
+    total: list.length,
+    enabled: list.filter((item) => item.status === 0).length,
+    disabled: list.filter((item) => item.status === 1).length,
+    timerRules: list.filter((item) => hasTimerTrigger(item)).length,
+  };
+}
+
 const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
     schema: useGridFormSchema(),
@@ -85,11 +113,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         query: async ({ page }, formValues) => {
-          return await getSceneRulePage({
+          const res = await getSceneRulePage({
             pageNo: page.currentPage,
             pageSize: page.pageSize,
             ...formValues,
           });
+          const list = res.items || res.list || res.records || [];
+          updateStatistics(list);
+          return res;
         },
       },
     },
@@ -107,7 +138,90 @@ const [Grid, gridApi] = useVbenVxeGrid({
 
 <template>
   <Page auto-content-height>
-    <FormModal @success="handleRefresh" />
+    <Row :gutter="16" class="mb-4">
+      <Col :span="6">
+        <Card
+          :bordered="false"
+          class="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+        >
+          <div class="flex items-center">
+            <div
+              class="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#667eea] to-[#764ba2] text-2xl text-white"
+            >
+              <IconifyIcon icon="ep:document" />
+            </div>
+            <div>
+              <div class="text-2xl font-semibold leading-none text-[#303133]">
+                {{ statistics.total }}
+              </div>
+              <div class="mt-1 text-sm text-[#909399]">总规则数</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col :span="6">
+        <Card
+          :bordered="false"
+          class="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+        >
+          <div class="flex items-center">
+            <div
+              class="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#f093fb] to-[#f5576c] text-2xl text-white"
+            >
+              <IconifyIcon icon="ep:check" />
+            </div>
+            <div>
+              <div class="text-2xl font-semibold leading-none text-[#303133]">
+                {{ statistics.enabled }}
+              </div>
+              <div class="mt-1 text-sm text-[#909399]">启用规则</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col :span="6">
+        <Card
+          :bordered="false"
+          class="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+        >
+          <div class="flex items-center">
+            <div
+              class="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#4facfe] to-[#00f2fe] text-2xl text-white"
+            >
+              <IconifyIcon icon="ep:close" />
+            </div>
+            <div>
+              <div class="text-2xl font-semibold leading-none text-[#303133]">
+                {{ statistics.disabled }}
+              </div>
+              <div class="mt-1 text-sm text-[#909399]">禁用规则</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+      <Col :span="6">
+        <Card
+          :bordered="false"
+          class="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+        >
+          <div class="flex items-center">
+            <div
+              class="mr-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#43e97b] to-[#38f9d7] text-2xl text-white"
+            >
+              <IconifyIcon icon="ep:timer" />
+            </div>
+            <div>
+              <div class="text-2xl font-semibold leading-none text-[#303133]">
+                {{ statistics.timerRules }}
+              </div>
+              <div class="mt-1 text-sm text-[#909399]">定时规则</div>
+            </div>
+          </div>
+        </Card>
+      </Col>
+    </Row>
+
+    <FormDrawer @success="handleRefresh" />
     <Grid table-title="场景规则列表">
       <template #toolbar-tools>
         <TableAction

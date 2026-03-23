@@ -33,8 +33,8 @@ export namespace ThingModelApi {
     identifier: string;
     name: string;
     callType: string;
-    inputData?: any[];
-    outputData?: any[];
+    inputParams?: any[];
+    outputParams?: any[];
     desc?: string;
   }
 
@@ -43,7 +43,7 @@ export namespace ThingModelApi {
     identifier: string;
     name: string;
     type: string;
-    outputData?: any[];
+    outputParams?: any[];
     desc?: string;
   }
 }
@@ -79,8 +79,8 @@ export interface ThingModelService {
   identifier?: string;
   name?: string;
   callType?: string;
-  inputData?: any[];
-  outputData?: any[];
+  inputParams?: any[];
+  outputParams?: any[];
   desc?: string;
 }
 
@@ -89,7 +89,7 @@ export interface ThingModelEvent {
   identifier?: string;
   name?: string;
   type?: string;
-  outputData?: any[];
+  outputParams?: any[];
   desc?: string;
 }
 
@@ -160,9 +160,16 @@ export function deleteThingModel(id: number) {
   return requestClient.delete(`/iot/thing-model/delete?id=${id}`);
 }
 
+/** IoT 物模型 TSL 响应 */
+export interface IotThingModelTSLResp {
+  properties?: ThingModelProperty[];
+  events?: ThingModelEvent[];
+  services?: ThingModelService[];
+}
+
 /** 获取物模型 TSL */
 export function getThingModelTSL(productId: number) {
-  return requestClient.get<ThingModelApi.ThingModel[]>(
+  return requestClient.get<IotThingModelTSLResp>(
     '/iot/thing-model/get-tsl',
     { params: { productId } },
   );

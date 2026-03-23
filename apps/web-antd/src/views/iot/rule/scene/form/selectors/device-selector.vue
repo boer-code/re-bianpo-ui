@@ -78,31 +78,32 @@ watch(
 
 <template>
   <Select
-    :model-value="modelValue"
-    @update:model-value="handleChange"
+    :value="modelValue"
+    @change="handleChange"
     placeholder="请选择设备"
     filterable
     clearable
     class="w-full"
     :loading="deviceLoading"
     :disabled="!productId"
+    option-label-prop="label"
   >
     <Select.Option
       v-for="device in deviceList"
       :key="device.id"
-      :label="device.deviceName"
       :value="device.id"
+      :label="device.deviceName"
     >
-      <div class="py-4px flex w-full items-center justify-between">
+      <div class="flex w-full items-center justify-between py-1">
         <div class="flex-1">
-          <div class="text-14px font-500 mb-2px text-primary">
+          <div class="mb-0.5 text-sm font-medium">
             {{ device.deviceName }}
           </div>
-          <div class="text-12px text-primary">
+          <div class="text-xs text-muted-foreground">
             {{ device.deviceKey }}
           </div>
         </div>
-        <div class="gap-4px flex items-center" v-if="device.id > 0">
+        <div class="flex items-center gap-1" v-if="device.id > 0">
           <DictTag :type="DICT_TYPE.IOT_DEVICE_STATE" :value="device.state" />
         </div>
       </div>

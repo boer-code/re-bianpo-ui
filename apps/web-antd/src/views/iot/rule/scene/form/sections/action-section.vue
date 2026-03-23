@@ -29,22 +29,6 @@ const emit = defineEmits<{
 
 const actions = useVModel(props, 'actions', emit);
 
-/** 获取执行器标签类型（用于 el-tag 的 type 属性） */
-function getActionTypeTag(
-  type: number,
-): 'danger' | 'info' | 'primary' | 'success' | 'warning' {
-  const actionTypeTags: Record<
-    number,
-    'danger' | 'info' | 'primary' | 'success' | 'warning'
-  > = {
-    [IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET]: 'primary',
-    [IotRuleSceneActionTypeEnum.DEVICE_SERVICE_INVOKE]: 'success',
-    [IotRuleSceneActionTypeEnum.ALERT_TRIGGER]: 'danger',
-    [IotRuleSceneActionTypeEnum.ALERT_RECOVER]: 'warning',
-  } as const;
-  return actionTypeTags[type] || 'info';
-}
-
 /** 判断是否为设备执行器类型 */
 function isDeviceAction(type: number): boolean {
   const deviceActionTypes = [
@@ -55,12 +39,27 @@ function isDeviceAction(type: number): boolean {
 }
 
 /** 判断是否为告警执行器类型 */
-function isAlertAction(type: number): boolean {
+function isAlertAction(type: number | string): boolean {
   const alertActionTypes = [
     IotRuleSceneActionTypeEnum.ALERT_TRIGGER,
     IotRuleSceneActionTypeEnum.ALERT_RECOVER,
   ] as number[];
-  return alertActionTypes.includes(type);
+  return alertActionTypes.includes(type as number);
+}
+
+/** 获取执行器标签颜色（用于 Tag 的 color 属性） */
+function getActionTagColor(type: number | string) {
+  const actionTypeTags: Record<string, string> = {
+    [IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET]: 'blue',
+    [IotRuleSceneActionTypeEnum.DEVICE_SERVICE_INVOKE]: 'green',
+    [IotRuleSceneActionTypeEnum.ALERT_TRIGGER]: 'red',
+    [IotRuleSceneActionTypeEnum.ALERT_RECOVER]: 'orange'
+  };
+  return actionTypeTags[type as string] || 'default';
+}
+
+function normalizeActionType(type?: number | string): number {
+  return Number(type || 0);
 }
 
 /**
@@ -69,7 +68,7 @@ function isAlertAction(type: number): boolean {
  */
 function createDefaultActionData(): Action {
   return {
-    type: IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET.toString(), // 默认为设备属性设置
+    type: IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET, // 默认为设备属性设置
     productId: undefined,
     deviceId: undefined,
     identifier: undefined, // 物模型标识符（服务调用时使用）
@@ -100,8 +99,12 @@ function removeAction(index: number) {
  * @param type 执行器类型
  */
 function updateActionType(index: number, type: number) {
-  actions.value[index]!.type = type.toString();
-  onActionTypeChange(actions.value[index] as Action, type);
+  const action = actions.value[index];
+  if (!action) {
+    return;
+  }
+  action.type = type;
+  onActionTypeChange(action, type);
 }
 
 /**
@@ -119,7 +122,6 @@ function updateAction(index: number, action: Action) {
  * @param alertConfigId 告警配置ID
  */
 function updateActionAlertConfig(index: number, alertConfigId?: number) {
-  actions.value[index]!.alertConfigId = alertConfigId;
   if (actions.value[index]) {
     actions.value[index].alertConfigId = alertConfigId;
   }
@@ -130,17 +132,13 @@ function updateActionAlertConfig(index: number, alertConfigId?: number) {
  * @param action 执行器对象
  * @param type 执行器类型
  */
-function onActionTypeChange(action: Action, type: any) {
+function onActionTypeChange(action: Action, type: number) {
   // 清理不相关的配置，确保数据结构干净
   if (isDeviceAction(type)) {
     // 设备控制类型：清理告警配置，确保设备参数存在
     action.alertConfigId = undefined;
-    if (!(action as any).params) {
-      (action as any).params = '';
-    }
-    // 如果从其他类型切换到设备控制类型，清空identifier（让用户重新选择）
-    if (action.identifier && type !== (action as any).type) {
-      action.identifier = undefined;
+    if (!action.params) {
+      action.params = '';
     }
   } else if (isAlertAction(type)) {
     action.productId = undefined;
@@ -153,13 +151,15 @@ function onActionTypeChange(action: Action, type: any) {
 </script>
 
 <template>
-  <Card class="rounded-lg border border-primary" shadow="never">
+  <Card class="mb-4">
     <template #title>
       <div class="flex items-center justify-between">
         <div class="gap-8px flex items-center">
           <IconifyIcon icon="ep:setting" class="text-18px text-primary" />
           <span class="text-16px font-600 text-primary"> 执行器配置 </span>
-          <Tag size="small" type="info"> {{ actions.length }} 个执行器 </Tag>
+            <Tag size="small" type="info" class="ml-2">
+            {{ actions.length }} 个执行器
+          </Tag>
         </div>
         <div class="gap-8px flex items-center">
           <Button type="primary" size="small" @click="addAction">
@@ -182,33 +182,29 @@ function onActionTypeChange(action: Action, type: any) {
       </div>
 
       <!-- 执行器列表 -->
-      <div v-else class="space-y-24px">
+      <div v-else class="space-y-4">
         <div
           v-for="(action, index) in actions"
           :key="`action-${index}`"
-          class="rounded-lg border-2 border-blue-200 bg-blue-50 shadow-sm transition-shadow hover:shadow-md"
+          class="rounded-lg border border-border bg-background shadow-sm transition-shadow hover:shadow-md"
         >
-          <!-- 执行器头部 - 蓝色主题 -->
+          <!-- 执行器头部 -->
           <div
-            class="flex items-center justify-between rounded-t-lg border-b border-blue-200 bg-gradient-to-r from-blue-50 to-sky-50 p-4"
+            class="flex items-center justify-between rounded-t-lg border-b border-border bg-primary/5 p-4"
           >
-            <div class="gap-12px flex items-center">
+            <div class="flex items-center gap-3">
               <div
-                class="font-600 flex items-center gap-2 text-base text-blue-700"
+                class="flex items-center gap-2 text-base font-semibold text-primary"
               >
                 <div
-                  class="flex size-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white"
+                  class="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
                 >
                   {{ index + 1 }}
                 </div>
                 <span>执行器 {{ index + 1 }}</span>
               </div>
-              <Tag
-                :type="getActionTypeTag(action.type as any)"
-                size="small"
-                class="font-500"
-              >
-                {{ getActionTypeLabel(action.type as any) }}
+              <Tag :color="getActionTagColor(normalizeActionType(action.type))" class="font-medium">
+                {{ getActionTypeLabel(normalizeActionType(action.type)) }}
               </Tag>
             </div>
             <div class="gap-8px flex items-center">
@@ -216,9 +212,8 @@ function onActionTypeChange(action: Action, type: any) {
                 v-if="actions.length > 1"
                 danger
                 size="small"
-                text
+                type="text"
                 @click="removeAction(index)"
-                class="hover:bg-red-50"
               >
                 <IconifyIcon icon="lucide:trash-2" />
                 删除
@@ -227,32 +222,23 @@ function onActionTypeChange(action: Action, type: any) {
           </div>
 
           <!-- 执行器内容区域 -->
-          <div class="p-16px space-y-16px">
+          <div class="space-y-4 p-4">
             <!-- 执行类型选择 -->
             <div class="w-full">
               <Form.Item label="执行类型" required>
                 <Select
-                  :model-value="action.type"
-                  @update:model-value="
-                    (value: number) => updateActionType(index, value)
-                  "
-                  @change="(value) => onActionTypeChange(action, value)"
+                  :value="action.type"
+                  @change="(value) => updateActionType(index, Number(value))"
+                  :options="getActionTypeOptions()"
                   placeholder="请选择执行类型"
                   class="w-full"
-                >
-                  <Select.Option
-                    v-for="option in getActionTypeOptions()"
-                    :key="option.value"
-                    :label="option.label"
-                    :value="option.value"
-                  />
-                </Select>
+                />
               </Form.Item>
             </div>
 
             <!-- 设备控制配置 -->
             <DeviceControlConfig
-              v-if="isDeviceAction(action.type as any)"
+              v-if="isDeviceAction(normalizeActionType(action.type))"
               :model-value="action"
               @update:model-value="(value) => updateAction(index, value)"
             />
@@ -261,7 +247,7 @@ function onActionTypeChange(action: Action, type: any) {
             <AlertConfig
               v-if="
                 action.type ===
-                IotRuleSceneActionTypeEnum.ALERT_RECOVER.toString()
+                IotRuleSceneActionTypeEnum.ALERT_RECOVER
               "
               :model-value="action.alertConfigId"
               @update:model-value="
@@ -273,30 +259,30 @@ function onActionTypeChange(action: Action, type: any) {
             <div
               v-if="
                 action.type ===
-                IotRuleSceneActionTypeEnum.ALERT_TRIGGER.toString()
+                IotRuleSceneActionTypeEnum.ALERT_TRIGGER
               "
-              class="bg-fill-color-blank rounded-lg border border-border p-4"
+              class="rounded-lg border border-border bg-background p-4"
             >
               <div class="mb-2 flex items-center gap-2">
                 <IconifyIcon icon="ep:warning" class="text-base text-warning" />
-                <span class="font-600 text-sm text-primary">触发告警</span>
-                <Tag size="small" type="warning">自动执行</Tag>
+                <span class="text-sm font-semibold text-primary">触发告警</span>
+                <Tag size="small" color="warning">自动执行</Tag>
               </div>
-              <div class="text-xs leading-relaxed text-secondary">
+              <div class="text-xs leading-relaxed text-muted-foreground">
                 当触发条件满足时，系统将自动发送告警通知，可在菜单 [告警中心 ->
                 告警配置] 管理。
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 添加提示 -->
-      <div v-if="actions.length > 0" class="py-16px text-center">
-        <Button type="primary" plain @click="addAction">
-          <IconifyIcon icon="ep:plus" />
-          继续添加执行器
-        </Button>
+        <!-- 添加提示 -->
+        <div class="py-4 text-center">
+          <Button type="primary" plain @click="addAction">
+            <IconifyIcon icon="ep:plus" />
+            继续添加执行器
+          </Button>
+        </div>
       </div>
     </div>
   </Card>

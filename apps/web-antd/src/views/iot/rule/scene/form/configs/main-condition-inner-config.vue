@@ -157,7 +157,12 @@ function handleDeviceChange() {
  */
 function handlePropertyChange(propertyInfo: any) {
   if (propertyInfo) {
-    propertyType.value = propertyInfo.type;
+    // 与物模型/后端返回对齐为小写，便于与 IoTDataSpecsDataTypeEnum、操作符 supportedTypes 匹配
+    const raw = propertyInfo.type;
+    propertyType.value =
+      raw === undefined || raw === null || raw === ''
+        ? ''
+        : String(raw).toLowerCase();
     propertyConfig.value = propertyInfo.config;
 
     // 对于事件上报和服务调用，自动设置操作符为 '='
@@ -177,18 +182,12 @@ function handlePropertyChange(propertyInfo: any) {
     <!-- 触发事件类型选择 -->
     <Form.Item label="触发事件类型" required>
       <Select
-        :model-value="triggerType"
-        @update:model-value="handleTriggerTypeChange"
+        :value="triggerType"
+        @change="handleTriggerTypeChange"
+        :options="triggerTypeOptions"
         placeholder="请选择触发事件类型"
         class="w-full"
-      >
-        <Select.Option
-          v-for="option in triggerTypeOptions"
-          :key="option.value"
-          :label="option.label"
-          :value="option.value"
-        />
-      </Select>
+      />
     </Form.Item>
 
     <!-- 设备属性条件配置 -->
@@ -323,41 +322,34 @@ function handlePropertyChange(propertyInfo: any) {
         <Col :span="6">
           <Form.Item label="操作符" required>
             <Select
-              :model-value="condition.operator"
-              @update:model-value="
+              :value="condition.operator"
+              @change="
                 (value: any) => updateConditionField('operator', value)
               "
               placeholder="请选择操作符"
               class="w-full"
             >
               <Select.Option
-                :label="
-                  IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.name
-                "
                 :value="
                   IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.value
                 "
-              />
+              >
+                {{ IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.name }}
+              </Select.Option>
             </Select>
           </Form.Item>
         </Col>
         <Col :span="6">
           <Form.Item label="参数" required>
             <Select
-              :model-value="condition.value"
-              @update:model-value="
+              :value="condition.value"
+              @change="
                 (value: any) => updateConditionField('value', value)
               "
-              placeholder="请选择操作符"
+              :options="deviceStatusChangeOptions"
+              placeholder="请选择参数"
               class="w-full"
-            >
-              <Select.Option
-                v-for="option in deviceStatusChangeOptions"
-                :key="option.value"
-                :label="option.label"
-                :value="option.value"
-              />
-            </Select>
+            />
           </Form.Item>
         </Col>
       </Row>

@@ -58,10 +58,10 @@ onMounted(() => {
   <div class="w-full">
     <Form.Item label="告警配置" required>
       <Select
-        v-model="localValue"
+        :value="localValue"
         placeholder="请选择告警配置"
-        filterable
-        clearable
+        show-search
+        allow-clear
         @change="handleChange"
         class="w-full"
         :loading="loading"
@@ -74,7 +74,7 @@ onMounted(() => {
         >
           <div class="flex items-center justify-between">
             <span>{{ config.name }}</span>
-            <Tag :type="config.enabled ? 'success' : 'danger'" size="small">
+            <Tag :color="config.enabled ? 'success' : 'error'">
               {{ config.enabled ? '启用' : '禁用' }}
             </Tag>
           </div>
