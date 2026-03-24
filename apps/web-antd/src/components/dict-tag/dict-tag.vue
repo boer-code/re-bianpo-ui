@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { DICT_TYPE } from '@vben/constants';
 import { getDictObj } from '@vben/hooks';
 import { isValidColor, TinyColor } from '@vben/utils';
 
@@ -59,13 +60,24 @@ const dictTag = computed(() => {
     cssClass: dict.cssClass,
   };
 });
+
+/** 最终传给 Tag 的 color（Ant Design Vue 4 用 CSS-in-JS 着色，需走 color 属性才稳定生效） */
+const tagDisplayColor = computed(() => {
+  if (props.type === DICT_TYPE.IOT_DEVICE_STATE) {
+    const n = Number(props.value);
+    if (n === 1) return 'success';
+    if (n === 2) return 'error';
+  }
+  const d = dictTag.value;
+  if (!d) {
+    return undefined;
+  }
+  return d.colorType ? d.colorType : d.cssClass;
+});
 </script>
 
 <template>
-  <Tag
-    v-if="dictTag"
-    :color="dictTag.colorType ? dictTag.colorType : dictTag.cssClass"
-  >
+  <Tag v-if="dictTag" :color="tagDisplayColor">
     {{ dictTag.label }}
   </Tag>
 </template>
