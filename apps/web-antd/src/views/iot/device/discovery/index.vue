@@ -7,7 +7,7 @@ import { computed, onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 
-import { message } from 'ant-design-vue';
+import { List, Space, message } from 'ant-design-vue';
 
 import { getDevicePage, updateDevice } from '#/api/iot/device/device';
 import {
@@ -61,11 +61,24 @@ async function loadDevices() {
     const page = await getDevicePage({
       pageNo: 1,
       pageSize: 200,
-      state: 0,
     } as any);
-    devices.value = (page.list || []).filter((item) =>
-      (item.deviceName || '').startsWith('raw_'),
-    );
+    devices.value = (page.list || []).filter((item) => {
+      const config = parseConfig(item.config);
+      const rawLike =
+        config?.rawAutoRegistered === true ||
+        (item.deviceName || '').startsWith('raw_');
+      const uninitialized = config?.initialized !== true;
+      return rawLike && uninitialized;
+    });
+    if (
+      selectedDevice.value &&
+      !devices.value.some((item) => item.id === selectedDevice.value?.id)
+    ) {
+      selectedDevice.value = undefined;
+      mappings.value = [];
+      thingModels.value = [];
+      resetForm();
+    }
     if (!selectedDevice.value && devices.value.length > 0) {
       await selectDevice(devices.value[0]);
     }
@@ -169,20 +182,22 @@ onMounted(loadDevices);
     <a-row :gutter="16">
       <a-col :span="7">
         <a-card title="待初始化设备" :loading="deviceLoading">
-          <a-list :data-source="devices" bordered>
+          <List :data-source="devices" bordered>
             <template #renderItem="{ item }">
-              <a-list-item
-                class="cursor-pointer"
-                :class="selectedDevice?.id === item.id ? 'bg-[#f0f7ff]' : ''"
+              <List.Item
+                class="discovery-device-item cursor-pointer"
+                :class="{ 'discovery-device-item--selected': selectedDevice?.id === item.id }"
                 @click="selectDevice(item)"
               >
                 <div>
                   <div>{{ item.deviceName }}</div>
-                  <div class="text-xs text-gray-400">{{ item.nickname || '-' }}</div>
+                  <div class="discovery-device-meta text-xs">
+                    {{ item.nickname || '-' }}
+                  </div>
                 </div>
-              </a-list-item>
+              </List.Item>
             </template>
-          </a-list>
+          </List>
         </a-card>
       </a-col>
       <a-col :span="17">
@@ -192,7 +207,7 @@ onMounted(loadDevices);
               完成初始化
             </a-button>
           </template>
-          <a-form layout="inline" class="mb-3">
+          <a-form layout="inline" class="discovery-form mb-3">
             <a-form-item label="通道键">
               <a-input v-model:value="form.channelKey" placeholder="U3D1" />
             </a-form-item>
@@ -256,10 +271,10 @@ onMounted(loadDevices);
             </a-table-column>
             <a-table-column title="操作" width="140">
               <template #default="{ record }">
-                <a-space>
+                <Space>
                   <a @click="edit(record)">编辑</a>
                   <a class="text-red-500" @click="remove(record.id)">删除</a>
-                </a-space>
+                </Space>
               </template>
             </a-table-column>
           </a-table>
@@ -268,3 +283,39 @@ onMounted(loadDevices);
     </a-row>
   </Page>
 </template>
+
+<style scoped lang="scss">
+.discovery-device-item {
+  transition: background-color 0.2s ease;
+}
+
+.discovery-device-item:hover {
+  background-color: rgb(0 0 0 / 2%);
+}
+
+.discovery-device-item--selected {
+  background-color: #f0f7ff;
+}
+
+.discovery-device-meta {
+  color: rgb(0 0 0 / 45%);
+}
+
+.discovery-form {
+  row-gap: 8px;
+}
+
+html.dark {
+  .discovery-device-item:hover {
+    background-color: rgb(255 255 255 / 8%);
+  }
+
+  .discovery-device-item--selected {
+    background-color: rgb(24 144 255 / 22%);
+  }
+
+  .discovery-device-meta {
+    color: rgb(255 255 255 / 55%);
+  }
+}
+</style>
