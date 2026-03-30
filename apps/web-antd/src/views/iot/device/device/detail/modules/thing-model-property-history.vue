@@ -196,10 +196,15 @@ function renderChart() {
     return;
   }
 
-  const times = list.value.map((item) =>
+  // 时间轴从左到右：从旧到新（与常见时间序列阅读习惯一致）
+  const sorted = [...list.value].sort(
+    (a, b) =>
+      new Date(a.updateTime).getTime() - new Date(b.updateTime).getTime(),
+  );
+  const times = sorted.map((item) =>
     formatDate(new Date(item.updateTime), 'YYYY-MM-DD HH:mm:ss'),
   );
-  const values = list.value.map((item) => Number(item.value));
+  const values = sorted.map((item) => Number(item.value));
 
   renderEcharts({
     title: {
