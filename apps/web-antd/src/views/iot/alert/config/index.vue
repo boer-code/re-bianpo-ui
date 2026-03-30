@@ -52,9 +52,9 @@ function getLevelColor(level?: number) {
 // 获取接收类型文本
 function getReceiveTypeText(type?: number) {
   const typeMap: Record<number, string> = {
-    1: '站内信',
+    1: '短信',
     2: '邮箱',
-    3: '短信',
+    3: '站内信',
     4: '微信',
     5: '钉钉',
   };
