@@ -228,9 +228,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!formRef.value) return;
     try {
       await formRef.value.validate();
-    } catch (e: any) {
+    } catch (error: any) {
       // Find the first error message and show it
-      const errorFields = e?.errorFields;
+      const errorFields = error?.errorFields;
       if (errorFields && errorFields.length > 0) {
         message.error(errorFields[0].errors[0]);
       }
@@ -263,7 +263,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData();
-      
+
       // 重置表单验证状态
       await nextTick();
       formRef.value?.clearValidate();

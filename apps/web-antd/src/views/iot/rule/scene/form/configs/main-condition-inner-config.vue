@@ -323,9 +323,7 @@ function handlePropertyChange(propertyInfo: any) {
           <Form.Item label="操作符" required>
             <Select
               :value="condition.operator"
-              @change="
-                (value: any) => updateConditionField('operator', value)
-              "
+              @change="(value: any) => updateConditionField('operator', value)"
               placeholder="请选择操作符"
               class="w-full"
             >
@@ -334,7 +332,9 @@ function handlePropertyChange(propertyInfo: any) {
                   IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.value
                 "
               >
-                {{ IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.name }}
+                {{
+                  IotRuleSceneTriggerConditionParameterOperatorEnum.EQUALS.name
+                }}
               </Select.Option>
             </Select>
           </Form.Item>
@@ -343,9 +343,7 @@ function handlePropertyChange(propertyInfo: any) {
           <Form.Item label="参数" required>
             <Select
               :value="condition.value"
-              @change="
-                (value: any) => updateConditionField('value', value)
-              "
+              @change="(value: any) => updateConditionField('value', value)"
               :options="deviceStatusChangeOptions"
               placeholder="请选择参数"
               class="w-full"

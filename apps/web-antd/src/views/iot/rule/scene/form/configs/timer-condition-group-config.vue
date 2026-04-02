@@ -92,10 +92,7 @@ function updateConditionGroup(index: number, group: TriggerCondition[]) {
     </div>
 
     <!-- 条件组列表 -->
-    <div
-      v-if="conditionGroups && conditionGroups.length > 0"
-      class="space-y-4"
-    >
+    <div v-if="conditionGroups && conditionGroups.length > 0" class="space-y-4">
       <div
         v-for="(group, groupIndex) in conditionGroups"
         :key="`group-${groupIndex}`"

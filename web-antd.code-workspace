@@ -2,37 +2,37 @@
   "folders": [
     {
       "name": "@vben/web-antd",
-      "path": "apps/web-antd"
+      "path": "apps/web-antd",
     },
     {
       "name": "@vben/packages",
-      "path": "packages"
+      "path": "packages",
     },
     {
       "name": "@vben/internal",
-      "path": "internal"
+      "path": "internal",
     },
     {
       "name": "@vben/scripts",
-      "path": "scripts"
+      "path": "scripts",
     },
     {
       "name": "@vben/docs",
-      "path": "docs"
-    }
+      "path": "docs",
+    },
   ],
   "settings": {
     "files.exclude": {
       "apps/web-antdv-next": true,
       "apps/web-ele": true,
       "apps/web-naive": true,
-      "apps/web-tdesign": true
+      "apps/web-tdesign": true,
     },
     "search.exclude": {
       "apps/web-antdv-next": true,
       "apps/web-ele": true,
       "apps/web-naive": true,
-      "apps/web-tdesign": true
-    }
-  }
+      "apps/web-tdesign": true,
+    },
+  },
 }

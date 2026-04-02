@@ -5,7 +5,14 @@ import { computed, ref, watch } from 'vue';
 import { IconifyIcon } from '@vben/icons';
 
 import { useVModel } from '@vueuse/core';
-import { DatePicker, Input, InputNumber, Select, Tag, Tooltip } from 'ant-design-vue';
+import {
+  DatePicker,
+  Input,
+  InputNumber,
+  Select,
+  Tag,
+  Tooltip,
+} from 'ant-design-vue';
 
 import {
   IoTDataSpecsDataTypeEnum,
@@ -193,10 +200,7 @@ watch(
     </Select>
 
     <!-- 范围输入 (between / not between) -->
-    <div
-      v-else-if="isRangeOperator"
-      class="w-full! flex items-center gap-2"
-    >
+    <div v-else-if="isRangeOperator" class="w-full! flex items-center gap-2">
       <Input
         v-model:value="rangeStart"
         :type="getInputType()"

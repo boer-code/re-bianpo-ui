@@ -169,10 +169,9 @@ export interface IotThingModelTSLResp {
 
 /** 获取物模型 TSL */
 export function getThingModelTSL(productId: number) {
-  return requestClient.get<IotThingModelTSLResp>(
-    '/iot/thing-model/get-tsl',
-    { params: { productId } },
-  );
+  return requestClient.get<IotThingModelTSLResp>('/iot/thing-model/get-tsl', {
+    params: { productId },
+  });
 }
 
 /** 导入物模型 TSL

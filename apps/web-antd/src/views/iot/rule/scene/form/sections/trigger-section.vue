@@ -89,7 +89,10 @@ function updateTriggerCronConfig(index: number, cronExpression?: string) {
  * @param index 触发器索引
  * @param conditionGroups 条件组数组
  */
-function updateTriggerConditionGroups(index: number, conditionGroups: TriggerCondition[][]) {
+function updateTriggerConditionGroups(
+  index: number,
+  conditionGroups: TriggerCondition[][],
+) {
   triggers.value[index]!.conditionGroups = conditionGroups;
 }
 
@@ -166,7 +169,10 @@ onMounted(() => {
                 </div>
                 <span>触发器 {{ index + 1 }}</span>
               </div>
-              <Tag :color="getTriggerTagColor(triggerItem.type as any)" class="font-medium">
+              <Tag
+                :color="getTriggerTagColor(triggerItem.type as any)"
+                class="font-medium"
+              >
                 {{ getTriggerTypeLabel(triggerItem.type as any) }}
               </Tag>
             </div>
@@ -200,8 +206,8 @@ onMounted(() => {
             <!-- 定时触发配置 -->
             <div
               v-else-if="
-                triggerItem.type ===
-                IotRuleSceneTriggerTypeEnum.TIMER || triggerItem.type === String(IotRuleSceneTriggerTypeEnum.TIMER)
+                triggerItem.type === IotRuleSceneTriggerTypeEnum.TIMER ||
+                triggerItem.type === String(IotRuleSceneTriggerTypeEnum.TIMER)
               "
               class="flex flex-col gap-4"
             >
@@ -218,9 +224,7 @@ onMounted(() => {
               </div>
 
               <!-- CRON 表达式配置 -->
-              <div
-                class="rounded-md border border-primary bg-background p-4"
-              >
+              <div class="rounded-md border border-primary bg-background p-4">
                 <Form.Item label="CRON表达式" required>
                   <CronTab
                     :model-value="triggerItem.cronExpression || '0 0 12 * * ?'"

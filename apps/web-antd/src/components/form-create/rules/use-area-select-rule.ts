@@ -1,5 +1,3 @@
-import { cloneDeep } from '@vben/utils';
-
 import {
   localeProps,
   makeRequiredRule,

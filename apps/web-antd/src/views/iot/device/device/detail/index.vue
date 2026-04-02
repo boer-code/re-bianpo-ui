@@ -3,7 +3,7 @@ import type { IotDeviceApi } from '#/api/iot/device/device';
 import type { IotProductApi } from '#/api/iot/product/product';
 import type { ThingModelData } from '#/api/iot/thingmodel';
 
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
@@ -12,6 +12,7 @@ import { DeviceTypeEnum } from '@vben/constants';
 import { message, Tabs } from 'ant-design-vue';
 
 import { getDevice } from '#/api/iot/device/device';
+import { getRawProductKey } from '#/api/iot/device/raw-config';
 import { getProduct, ProtocolTypeEnum } from '#/api/iot/product/product';
 import { getThingModelListByProductId } from '#/api/iot/thingmodel';
 
@@ -20,6 +21,7 @@ import DeviceDetailsHeader from './modules/header.vue';
 import DeviceDetailsInfo from './modules/info.vue';
 import DeviceDetailsMessage from './modules/message.vue';
 import DeviceModbusConfig from './modules/modbus-config.vue';
+import DeviceDetailsPayloadMapping from './modules/payload-mapping.vue';
 import DeviceDetailsSimulator from './modules/simulator.vue';
 import DeviceDetailsSubDevice from './modules/sub-device.vue';
 import DeviceDetailsThingModel from './modules/thing-model.vue';
@@ -35,6 +37,13 @@ const product = ref<IotProductApi.Product>({} as IotProductApi.Product);
 const device = ref<IotDeviceApi.Device>({} as IotDeviceApi.Device);
 const activeTab = ref('info');
 const thingModelList = ref<ThingModelData[]>([]);
+const rawProductKey = ref<string>('');
+
+const isRawProduct = computed(() => {
+  return (
+    !!rawProductKey.value && product.value.productKey === rawProductKey.value
+  );
+});
 
 /** 获取设备详情 */
 async function getDeviceData(deviceId: number) {
@@ -47,6 +56,15 @@ async function getDeviceData(deviceId: number) {
     message.error('获取设备详情失败');
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadRawProductKey() {
+  try {
+    const resp = await getRawProductKey();
+    rawProductKey.value = resp?.productKey || '';
+  } catch {
+    rawProductKey.value = '';
   }
 }
 
@@ -78,7 +96,7 @@ onMounted(async () => {
     return;
   }
 
-  await getDeviceData(id);
+  await Promise.all([getDeviceData(id), loadRawProductKey()]);
 
   // 处理 tab 参数
   const { tab } = route.query;
@@ -107,6 +125,13 @@ onMounted(async () => {
       <Tabs.TabPane key="model" tab="物模型数据">
         <DeviceDetailsThingModel
           v-if="activeTab === 'model' && device.id"
+          :device-id="device.id"
+          :thing-model-list="thingModelList"
+        />
+      </Tabs.TabPane>
+      <Tabs.TabPane v-if="isRawProduct" key="payload-mapping" tab="映射配置">
+        <DeviceDetailsPayloadMapping
+          v-if="activeTab === 'payload-mapping' && device.id"
           :device-id="device.id"
           :thing-model-list="thingModelList"
         />

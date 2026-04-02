@@ -4,8 +4,7 @@ import type { RuleSceneApi } from '#/api/iot/rule/scene';
 
 import { ref } from 'vue';
 
-import { Page } from '@vben/common-ui';
-import { useVbenDrawer } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 
 import { Card, Col, message, Row } from 'ant-design-vue';
@@ -87,9 +86,7 @@ async function handleDelete(row: RuleSceneApi.SceneRule) {
 
 /** 检查规则是否包含定时触发器 */
 function hasTimerTrigger(rule: RuleSceneApi.SceneRule): boolean {
-  return (
-    rule.triggers?.some((trigger: any) => trigger.type === '3') || false
-  );
+  return rule.triggers?.some((trigger: any) => trigger.type === '3') || false;
 }
 
 /** 更新统计数据 */

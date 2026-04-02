@@ -1,51 +1,27 @@
 <script setup lang="ts">
 import type { IotDeviceApi } from '#/api/iot/device/device';
-import type { IotDevicePayloadMappingApi } from '#/api/iot/device/payload-mapping';
 import type { ThingModelData } from '#/api/iot/thingmodel';
 
 import { computed, onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 
-import { List, Space, message } from 'ant-design-vue';
+import { List, message } from 'ant-design-vue';
 
 import { getDevicePage, updateDevice } from '#/api/iot/device/device';
-import {
-  createPayloadMapping,
-  deletePayloadMapping,
-  getPayloadMappingListByDevice,
-  updatePayloadMapping,
-} from '#/api/iot/device/payload-mapping';
 import { getThingModelListByProductId } from '#/api/iot/thingmodel';
+
+import DevicePayloadMapping from '../device/detail/modules/payload-mapping.vue';
 
 defineOptions({ name: 'IoTDeviceDiscovery' });
 
-const loading = ref(false);
 const deviceLoading = ref(false);
 const devices = ref<IotDeviceApi.Device[]>([]);
 const selectedDevice = ref<IotDeviceApi.Device>();
 const thingModels = ref<ThingModelData[]>([]);
-const mappings = ref<IotDevicePayloadMappingApi.Mapping[]>([]);
-const saving = ref(false);
+const payloadMappingRef = ref<InstanceType<typeof DevicePayloadMapping>>();
 
-const form = ref<IotDevicePayloadMappingApi.Mapping>({
-  deviceId: 0,
-  channelKey: '',
-  thingModelIdentifier: '',
-  clBitIndex: undefined,
-  formula: '',
-  zeroOffset: undefined,
-  direction: 2,
-  enabled: true,
-});
-
-const canSave = computed(() => {
-  return !!(
-    selectedDevice.value &&
-    form.value.channelKey &&
-    form.value.thingModelIdentifier
-  );
-});
+const mappingCount = computed(() => payloadMappingRef.value?.mappingCount || 0);
 
 function parseConfig(config?: string) {
   try {
@@ -75,12 +51,13 @@ async function loadDevices() {
       !devices.value.some((item) => item.id === selectedDevice.value?.id)
     ) {
       selectedDevice.value = undefined;
-      mappings.value = [];
       thingModels.value = [];
-      resetForm();
     }
     if (!selectedDevice.value && devices.value.length > 0) {
-      await selectDevice(devices.value[0]);
+      const first = devices.value[0];
+      if (first) {
+        await selectDevice(first);
+      }
     }
   } finally {
     deviceLoading.value = false;
@@ -89,78 +66,18 @@ async function loadDevices() {
 
 async function selectDevice(device: IotDeviceApi.Device) {
   selectedDevice.value = device;
-  await Promise.all([
-    loadMappings(device.id!),
-    loadThingModels(device.productId),
-  ]);
-  resetForm();
+  await loadThingModels(device.productId);
 }
 
 async function loadThingModels(productId: number) {
   thingModels.value = await getThingModelListByProductId(productId);
 }
 
-async function loadMappings(deviceId: number) {
-  loading.value = true;
-  try {
-    mappings.value = await getPayloadMappingListByDevice(deviceId);
-  } finally {
-    loading.value = false;
-  }
-}
-
-function resetForm() {
-  form.value = {
-    deviceId: selectedDevice.value?.id || 0,
-    channelKey: '',
-    thingModelIdentifier: '',
-    clBitIndex: undefined,
-    formula: '',
-    zeroOffset: undefined,
-    direction: 2,
-    enabled: true,
-  };
-}
-
-async function save() {
-  if (!canSave.value || !selectedDevice.value) {
-    return;
-  }
-  saving.value = true;
-  try {
-    const payload = { ...form.value, deviceId: selectedDevice.value.id! };
-    if (payload.id) {
-      await updatePayloadMapping(payload);
-      message.success('映射已更新');
-    } else {
-      await createPayloadMapping(payload);
-      message.success('映射已新增');
-    }
-    await loadMappings(selectedDevice.value.id!);
-    resetForm();
-  } finally {
-    saving.value = false;
-  }
-}
-
-function edit(item: IotDevicePayloadMappingApi.Mapping) {
-  form.value = { ...item };
-}
-
-async function remove(id?: number) {
-  if (!id || !selectedDevice.value) {
-    return;
-  }
-  await deletePayloadMapping(id);
-  message.success('映射已删除');
-  await loadMappings(selectedDevice.value.id!);
-}
-
 async function finishInit() {
   if (!selectedDevice.value) {
     return;
   }
-  if (mappings.value.length === 0) {
+  if (mappingCount.value === 0) {
     message.warning('请至少配置一条映射');
     return;
   }
@@ -186,7 +103,10 @@ onMounted(loadDevices);
             <template #renderItem="{ item }">
               <List.Item
                 class="discovery-device-item cursor-pointer"
-                :class="{ 'discovery-device-item--selected': selectedDevice?.id === item.id }"
+                :class="{
+                  'discovery-device-item--selected':
+                    selectedDevice?.id === item.id,
+                }"
                 @click="selectDevice(item)"
               >
                 <div>
@@ -201,83 +121,22 @@ onMounted(loadDevices);
         </a-card>
       </a-col>
       <a-col :span="17">
-        <a-card :loading="loading" :title="selectedDevice?.deviceName || '请选择设备'">
+        <a-card :title="selectedDevice?.deviceName || '请选择设备'">
           <template #extra>
-            <a-button type="primary" :disabled="!selectedDevice" @click="finishInit">
+            <a-button
+              type="primary"
+              :disabled="!selectedDevice"
+              @click="finishInit"
+            >
               完成初始化
             </a-button>
           </template>
-          <a-form layout="inline" class="discovery-form mb-3">
-            <a-form-item label="通道键">
-              <a-input v-model:value="form.channelKey" placeholder="U3D1" />
-            </a-form-item>
-            <a-form-item label="物模型">
-              <a-select
-                v-model:value="form.thingModelIdentifier"
-                style="width: 220px"
-                show-search
-              >
-                <a-select-option
-                  v-for="tm in thingModels"
-                  :key="tm.identifier"
-                  :value="tm.identifier"
-                >
-                  {{ tm.name }} ({{ tm.identifier }})
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-            <a-form-item label="CL位">
-              <a-input-number v-model:value="form.clBitIndex" :min="1" :max="7" />
-            </a-form-item>
-            <a-form-item label="公式">
-              <a-input v-model:value="form.formula" placeholder="x*0.1-50" />
-            </a-form-item>
-            <a-form-item label="归零偏移">
-              <a-input-number v-model:value="form.zeroOffset" />
-            </a-form-item>
-            <a-form-item label="方向">
-              <a-select v-model:value="form.direction" style="width: 100px">
-                <a-select-option :value="0">上行</a-select-option>
-                <a-select-option :value="1">下行</a-select-option>
-                <a-select-option :value="2">双向</a-select-option>
-              </a-select>
-            </a-form-item>
-            <a-form-item>
-              <a-checkbox v-model:checked="form.enabled">启用</a-checkbox>
-            </a-form-item>
-            <a-form-item>
-              <a-button type="primary" :disabled="!canSave" :loading="saving" @click="save">
-                保存映射
-              </a-button>
-            </a-form-item>
-          </a-form>
-
-          <a-table
-            row-key="id"
-            size="small"
-            :data-source="mappings"
-            :pagination="false"
-          >
-            <a-table-column title="通道键" data-index="channelKey" />
-            <a-table-column title="物模型" data-index="thingModelIdentifier" />
-            <a-table-column title="CL位" data-index="clBitIndex" />
-            <a-table-column title="公式" data-index="formula" />
-            <a-table-column title="偏移" data-index="zeroOffset" />
-            <a-table-column title="方向" data-index="direction" />
-            <a-table-column title="启用" data-index="enabled">
-              <template #default="{ text }">
-                {{ text ? '是' : '否' }}
-              </template>
-            </a-table-column>
-            <a-table-column title="操作" width="140">
-              <template #default="{ record }">
-                <Space>
-                  <a @click="edit(record)">编辑</a>
-                  <a class="text-red-500" @click="remove(record.id)">删除</a>
-                </Space>
-              </template>
-            </a-table-column>
-          </a-table>
+          <DevicePayloadMapping
+            v-if="selectedDevice?.id"
+            ref="payloadMappingRef"
+            :device-id="selectedDevice.id"
+            :thing-model-list="thingModels"
+          />
         </a-card>
       </a-col>
     </a-row>
@@ -299,10 +158,6 @@ onMounted(loadDevices);
 
 .discovery-device-meta {
   color: rgb(0 0 0 / 45%);
-}
-
-.discovery-form {
-  row-gap: 8px;
 }
 
 html.dark {

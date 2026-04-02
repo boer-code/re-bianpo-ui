@@ -76,18 +76,12 @@ const paramsValue = computed({
 
 // 计算属性：是否为属性设置类型
 const isPropertySetAction = computed(() => {
-  return (
-    action.value.type ===
-    IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET
-  );
+  return action.value.type === IotRuleSceneActionTypeEnum.DEVICE_PROPERTY_SET;
 });
 
 // 计算属性：是否为服务调用类型
 const isServiceInvokeAction = computed(() => {
-  return (
-    action.value.type ===
-    IotRuleSceneActionTypeEnum.DEVICE_SERVICE_INVOKE
-  );
+  return action.value.type === IotRuleSceneActionTypeEnum.DEVICE_SERVICE_INVOKE;
 });
 
 /**
@@ -162,8 +156,8 @@ async function fetchThingModelTSL(productId: number) {
     if (res && typeof res === 'string') {
       try {
         return JSON.parse(res);
-      } catch (e) {
-        console.error('解析物模型TSL数据失败:', e);
+      } catch (error) {
+        console.error('解析物模型TSL数据失败:', error);
         return null;
       }
     }
@@ -428,10 +422,10 @@ watch(
       </div>
     </div>
 
-  <!-- 控制参数配置 - 属性设置类型时显示 -->
-  <div v-if="action.productId && isPropertySetAction" class="space-y-4">
-    <!-- 参数配置 -->
-    <Form.Item label="控制参数" required>
+    <!-- 控制参数配置 - 属性设置类型时显示 -->
+    <div v-if="action.productId && isPropertySetAction" class="space-y-4">
+      <!-- 参数配置 -->
+      <Form.Item label="控制参数" required>
         <JsonParamsInput
           v-model="paramsValue"
           type="property"

@@ -177,9 +177,7 @@ watch(
         <Form.Item label="时间条件" required>
           <Select
             :value="condition.operator"
-            @change="
-              (value: any) => updateConditionField('operator', value)
-            "
+            @change="(value: any) => updateConditionField('operator', value)"
             placeholder="请选择时间条件"
             class="w-full"
           >
@@ -209,7 +207,10 @@ watch(
           <TimePicker
             v-if="needsTimeInput"
             :value="timeValue"
-            @change="(_val: any, timeString: string) => handleTimeValueChange(timeString)"
+            @change="
+              (_val: any, timeString: string) =>
+                handleTimeValueChange(timeString)
+            "
             placeholder="请选择时间"
             format="HH:mm:ss"
             value-format="HH:mm:ss"
@@ -218,7 +219,10 @@ watch(
           <DatePicker
             v-else-if="needsDateInput"
             :value="timeValue"
-            @change="(_val: any, dateString: string) => handleTimeValueChange(dateString)"
+            @change="
+              (_val: any, dateString: string) =>
+                handleTimeValueChange(dateString)
+            "
             type="datetime"
             placeholder="请选择日期时间"
             format="YYYY-MM-DD HH:mm:ss"
@@ -235,7 +239,10 @@ watch(
           <TimePicker
             v-if="needsTimeInput"
             :value="timeValue2"
-            @change="(_val: any, timeString: string) => handleTimeValue2Change(timeString)"
+            @change="
+              (_val: any, timeString: string) =>
+                handleTimeValue2Change(timeString)
+            "
             placeholder="请选择结束时间"
             format="HH:mm:ss"
             value-format="HH:mm:ss"
@@ -244,7 +251,10 @@ watch(
           <DatePicker
             v-else
             :value="timeValue2"
-            @change="(_val: any, dateString: string) => handleTimeValue2Change(dateString)"
+            @change="
+              (_val: any, dateString: string) =>
+                handleTimeValue2Change(dateString)
+            "
             type="datetime"
             placeholder="请选择结束日期时间"
             format="YYYY-MM-DD HH:mm:ss"

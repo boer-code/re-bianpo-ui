@@ -275,6 +275,7 @@ watch(
 :deep(.ant-select-item-option-content) {
   white-space: normal;
 }
+
 :deep(.ant-select-item) {
   min-height: auto;
   padding-block: 8px;

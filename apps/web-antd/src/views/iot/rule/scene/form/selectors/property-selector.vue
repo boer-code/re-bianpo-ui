@@ -11,7 +11,6 @@ import { computed, ref, watch } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
 
-import { useVModel } from '@vueuse/core';
 import { Button, Popover, Select, Tag } from 'ant-design-vue';
 
 import { getThingModelTSL } from '#/api/iot/thingmodel';
@@ -31,10 +30,10 @@ defineOptions({ name: 'PropertySelector' });
 
 const props = defineProps<{
   deviceId?: number;
+  isCondition?: boolean;
   modelValue?: string;
   productId?: number;
   triggerType: number;
-  isCondition?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -64,12 +63,12 @@ export interface PropertySelectorItem {
 
 const loading = ref(false); // 加载状态
 const propertyList = ref<PropertySelectorItem[]>([]); // 属性列表
-const thingModelTSL = ref<null | IotThingModelTSLResp>(null); // 物模型TSL数据
+const thingModelTSL = ref<IotThingModelTSLResp | null>(null); // 物模型TSL数据
 
 // 计算属性：属性分组
 const propertyGroups = computed(() => {
   const groups: { label: string; options: any[] }[] = [];
-  
+
   if (!propertyList.value || propertyList.value.length === 0) {
     return groups;
   }
@@ -157,8 +156,8 @@ async function fetchThingModelTSL() {
       if (typeof tslData === 'string') {
         try {
           thingModelTSL.value = JSON.parse(tslData);
-        } catch (e) {
-          console.error('解析物模型TSL数据失败:', e);
+        } catch (error) {
+          console.error('解析物模型TSL数据失败:', error);
           thingModelTSL.value = null;
         }
       } else {
@@ -305,20 +304,22 @@ watch(
 </script>
 
 <template>
-  <div class="gap-8px flex min-w-0 w-full max-w-full items-center">
+  <div class="gap-8px flex w-full min-w-0 max-w-full items-center">
     <Select
       :value="modelValue"
       placeholder="请选择监控项"
       filterable
       clearable
       @change="handleChange"
-      class="min-w-[150px] w-full max-w-full"
+      class="w-full min-w-[150px] max-w-full"
       :loading="loading"
       option-label-prop="label"
       :disabled="!productId"
     >
       <template #notFoundContent>
-        <div class="py-4 text-center text-sm text-muted-foreground">暂无数据</div>
+        <div class="py-4 text-center text-sm text-muted-foreground">
+          暂无数据
+        </div>
       </template>
 
       <Select.OptGroup
@@ -360,7 +361,7 @@ watch(
     >
       <template #content>
         <div class="property-detail-content">
-          <div class="gap-2 mb-3 flex items-center">
+          <div class="mb-3 flex items-center gap-2">
             <IconifyIcon icon="ep:info-filled" class="text-16px text-info" />
             <span class="text-14px font-500 text-foreground">
               {{ selectedProperty.name }}
@@ -374,11 +375,13 @@ watch(
           </div>
 
           <div class="space-y-2 pl-6">
-            <div class="gap-2 flex items-start">
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+            <div class="flex items-start gap-2">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 标识符：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ selectedProperty.identifier }}
               </span>
             </div>
@@ -387,28 +390,34 @@ watch(
               v-if="selectedProperty.description"
               class="gap-8px flex items-start"
             >
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 描述：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ selectedProperty.description }}
               </span>
             </div>
 
             <div v-if="selectedProperty.unit" class="gap-8px flex items-start">
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 单位：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ selectedProperty.unit }}
               </span>
             </div>
 
             <div v-if="selectedProperty.range" class="gap-8px flex items-start">
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 取值范围：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ selectedProperty.range }}
               </span>
             </div>
@@ -421,10 +430,12 @@ watch(
               "
               class="gap-8px flex items-start"
             >
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 访问模式：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ getAccessModeLabel(selectedProperty.accessMode) }}
               </span>
             </div>
@@ -436,10 +447,12 @@ watch(
               "
               class="gap-8px flex items-start"
             >
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 事件类型：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
+              <span class="text-12px flex-1 font-medium text-foreground">
                 {{ getEventTypeLabel(selectedProperty.eventType) }}
               </span>
             </div>
@@ -451,11 +464,15 @@ watch(
               "
               class="gap-8px flex items-start"
             >
-              <span class="text-12px min-w-60px flex-shrink-0 text-muted-foreground">
+              <span
+                class="text-12px min-w-60px flex-shrink-0 text-muted-foreground"
+              >
                 调用类型：
               </span>
-              <span class="text-12px flex-1 text-foreground font-medium">
-                {{ getThingModelServiceCallTypeLabel(selectedProperty.callType) }}
+              <span class="text-12px flex-1 font-medium text-foreground">
+                {{
+                  getThingModelServiceCallTypeLabel(selectedProperty.callType)
+                }}
               </span>
             </div>
           </div>

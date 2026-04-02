@@ -87,7 +87,10 @@ function updateCondition(index: number, condition: TriggerCondition) {
     <!-- 空状态 -->
     <div v-if="!subGroup || subGroup.length === 0" class="py-6 text-center">
       <div class="flex flex-col items-center gap-3">
-        <IconifyIcon icon="lucide:plus" class="text-[32px] text-muted-foreground" />
+        <IconifyIcon
+          icon="lucide:plus"
+          class="text-[32px] text-muted-foreground"
+        />
         <div class="text-muted-foreground">
           <p class="mb-1 text-base font-bold">暂无条件</p>
           <p class="text-xs">点击下方按钮添加第一个条件</p>
@@ -107,9 +110,7 @@ function updateCondition(index: number, condition: TriggerCondition) {
         class="relative"
       >
         <!-- 条件配置 -->
-        <div
-          class="rounded-lg border border-border bg-background shadow-sm"
-        >
+        <div class="rounded-lg border border-border bg-background shadow-sm">
           <div
             class="flex items-center justify-between rounded-t-lg border-b border-border bg-primary/5 p-3"
           >
@@ -148,10 +149,12 @@ function updateCondition(index: number, condition: TriggerCondition) {
       </div>
 
       <!-- 添加条件按钮 -->
-        <div
-          v-if="subGroup && subGroup.length > 0 && subGroup.length < maxConditions"
-          class="py-4 text-center"
-        >
+      <div
+        v-if="
+          subGroup && subGroup.length > 0 && subGroup.length < maxConditions
+        "
+        class="py-4 text-center"
+      >
         <Button type="primary" plain @click="addCondition">
           <IconifyIcon icon="lucide:plus" />
           继续添加条件

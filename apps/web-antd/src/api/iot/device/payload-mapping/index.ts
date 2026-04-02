@@ -6,7 +6,6 @@ export namespace IotDevicePayloadMappingApi {
     deviceId: number;
     channelKey: string;
     thingModelIdentifier: string;
-    clBitIndex?: number;
     formula?: string;
     zeroOffset?: number;
     direction: number; // 0上行 1下行 2双向
