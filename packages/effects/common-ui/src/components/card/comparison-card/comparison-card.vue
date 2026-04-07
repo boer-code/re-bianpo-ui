@@ -35,10 +35,10 @@ const iconName = computed(() => iconMap[props.icon] || iconMap.menu);
     <CardContent class="flex h-full flex-col p-6">
       <div class="mb-4 flex items-start justify-between">
         <div class="flex flex-1 flex-col">
-          <span class="mb-2 text-sm font-medium text-gray-500">
+          <span class="text-muted-foreground mb-2 text-sm font-medium">
             {{ title }}
           </span>
-          <span class="text-3xl font-bold text-gray-800">
+          <span class="text-foreground text-3xl font-bold">
             <span v-if="value === -1">--</span>
             <VbenCountToAnimator v-else :end-val="value" :duration="1000" />
           </span>
@@ -48,10 +48,10 @@ const iconName = computed(() => iconMap[props.icon] || iconMap.menu);
         </div>
       </div>
 
-      <div class="mt-auto border-t border-gray-100 pt-3">
+      <div class="border-border mt-auto border-t pt-3">
         <div class="flex items-center justify-between text-sm">
-          <span class="text-gray-400">今日新增</span>
-          <span v-if="todayCount === -1" class="text-gray-400">--</span>
+          <span class="text-muted-foreground">今日新增</span>
+          <span v-if="todayCount === -1" class="text-muted-foreground">--</span>
           <span v-else class="font-medium text-green-500">
             +{{ todayCount }}
           </span>
