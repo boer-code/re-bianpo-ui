@@ -81,7 +81,17 @@ export function getDeviceStateGaugeChartOptions(
   max: number,
   color: string,
   title: string,
+  isDark = false,
 ): any {
+  const neonColorMap: Record<string, [string, string]> = {
+    '#52c41a': ['#8EFFA1', '#39E67A'],
+    '#ff4d4f': ['#FF9BB0', '#FF5E7A'],
+    '#1890ff': ['#72E3FF', '#6A7BFF'],
+  };
+
+  const [startColor, endColor] = neonColorMap[color] ?? [`${color}E6`, color];
+  const axisLineBg = isDark ? '#2F3747' : '#E5E7EB';
+
   return {
     series: [
       {
@@ -91,18 +101,38 @@ export function getDeviceStateGaugeChartOptions(
         min: 0,
         max,
         center: ['50%', '50%'],
-        radius: '80%',
+        radius: '86%',
         progress: {
           show: true,
-          width: 12,
+          roundCap: true,
+          width: 20,
           itemStyle: {
-            color,
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 1,
+              colorStops: [
+                {
+                  offset: 0,
+                  color: startColor,
+                },
+                {
+                  offset: 1,
+                  color: endColor,
+                },
+              ],
+            },
+            shadowColor: `${endColor}99`,
+            shadowBlur: 18,
           },
         },
         axisLine: {
+          roundCap: true,
           lineStyle: {
-            width: 12,
-            color: [[1, '#E5E7EB']] as [number, string][],
+            width: 20,
+            color: [[1, axisLineBg]] as [number, string][],
           },
         },
         axisTick: { show: false },
@@ -111,16 +141,16 @@ export function getDeviceStateGaugeChartOptions(
         pointer: { show: false },
         title: {
           show: true,
-          offsetCenter: [0, '80%'],
+          offsetCenter: [0, '100%'],
           fontSize: 14,
-          color: '#666',
+          color: '#A8B3C8',
         },
         detail: {
           valueAnimation: true,
-          fontSize: 32,
-          fontWeight: 'bold',
-          color,
-          offsetCenter: [0, '10%'],
+          fontSize: 30,
+          fontWeight: 700,
+          color: endColor,
+          offsetCenter: [0, '8%'],
           formatter: (val: number) => `${val} 个`,
         },
         data: [{ value, name: title }],
@@ -134,16 +164,32 @@ export function getDeviceStateGaugeChartOptions(
  */
 export function getDeviceCountPieChartOptions(
   data: Array<{ name: string; value: number }>,
+  isDark = false,
 ): any {
+  const tooltipBackground = isDark ? 'rgba(17, 24, 39, 0.92)' : 'rgba(255, 255, 255, 0.96)';
+  const tooltipBorder = isDark
+    ? 'rgba(114, 227, 255, 0.35)'
+    : 'rgba(59, 130, 246, 0.25)';
+  const tooltipTextColor = isDark ? '#E5EDFF' : '#1F2937';
+  const legendTextColor = isDark ? '#A8B3C8' : '#4B5563';
+  const emphasisLabelColor = isDark ? '#E5EDFF' : '#111827';
+
   return {
+    color: ['#6A7BFF', '#39E67A', '#72E3FF', '#FF5E7A', '#FFC857', '#B37BFF'],
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBackground,
+      borderColor: tooltipBorder,
+      borderWidth: 1,
+      textStyle: {
+        color: tooltipTextColor,
+      },
       formatter: '{b}: {c} 个 ({d}%)',
     },
     legend: {
       type: 'scroll',
       orient: 'horizontal',
-      bottom: '10px',
+      bottom: '8px',
       left: 'center',
       icon: 'circle',
       itemWidth: 10,
@@ -151,11 +197,13 @@ export function getDeviceCountPieChartOptions(
       itemGap: 12,
       textStyle: {
         fontSize: 12,
+        color: legendTextColor,
       },
       pageButtonPosition: 'end',
       pageIconSize: 12,
       pageTextStyle: {
         fontSize: 12,
+        color: legendTextColor,
       },
       pageFormatter: '{current}/{total}',
     },
@@ -163,27 +211,31 @@ export function getDeviceCountPieChartOptions(
       {
         name: '设备数量',
         type: 'pie',
-        radius: ['35%', '55%'],
+        radius: ['40%', '62%'],
         center: ['50%', '40%'],
         avoidLabelOverlap: false,
         itemStyle: {
-          borderRadius: 8,
-          borderColor: '#fff',
-          borderWidth: 2,
+          borderRadius: 12,
+          borderWidth: 0,
+          shadowBlur: 10,
+          shadowColor: 'rgba(106, 123, 255, 0.25)',
         },
         label: {
           show: false,
         },
         emphasis: {
+          scale: true,
+          scaleSize: 8,
           label: {
             show: true,
             fontSize: 16,
             fontWeight: 'bold',
+            color: emphasisLabelColor,
           },
           itemStyle: {
-            shadowBlur: 10,
+            shadowBlur: 16,
             shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
+            shadowColor: 'rgba(114, 227, 255, 0.45)',
           },
         },
         labelLine: {

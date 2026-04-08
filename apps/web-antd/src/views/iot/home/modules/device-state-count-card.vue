@@ -3,6 +3,7 @@ import type { IotStatisticsApi } from '#/api/iot/statistics';
 
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
+import { usePreferences } from '@vben/preferences';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import { Card, Col, Empty, Row } from 'ant-design-vue';
@@ -15,6 +16,8 @@ const props = defineProps<{
   loading?: boolean;
   statsData: IotStatisticsApi.StatisticsSummaryRespVO;
 }>();
+
+const { isDark } = usePreferences();
 
 const deviceOnlineChartRef = ref();
 const deviceOfflineChartRef = ref();
@@ -47,6 +50,7 @@ async function initCharts() {
       max,
       '#52c41a',
       '在线设备',
+      isDark.value,
     ),
   );
   // 离线设备
@@ -56,6 +60,7 @@ async function initCharts() {
       max,
       '#ff4d4f',
       '离线设备',
+      isDark.value,
     ),
   );
   // 待激活设备
@@ -65,6 +70,7 @@ async function initCharts() {
       max,
       '#1890ff',
       '待激活设备',
+      isDark.value,
     ),
   );
 }
@@ -76,6 +82,13 @@ watch(
     initCharts();
   },
   { deep: true },
+);
+
+watch(
+  () => isDark.value,
+  () => {
+    initCharts();
+  },
 );
 
 /** 组件挂载时初始化图表 */

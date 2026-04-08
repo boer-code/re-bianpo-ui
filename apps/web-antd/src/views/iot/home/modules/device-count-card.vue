@@ -3,6 +3,7 @@ import type { IotStatisticsApi } from '#/api/iot/statistics';
 
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
+import { usePreferences } from '@vben/preferences';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import { Card, Empty } from 'ant-design-vue';
@@ -15,6 +16,8 @@ const props = defineProps<{
   loading?: boolean;
   statsData: IotStatisticsApi.StatisticsSummaryRespVO;
 }>();
+
+const { isDark } = usePreferences();
 
 const deviceCountChartRef = ref();
 const { renderEcharts } = useEcharts(deviceCountChartRef);
@@ -38,7 +41,7 @@ async function initChart() {
   const data = Object.entries(props.statsData.productCategoryDeviceCounts).map(
     ([name, value]) => ({ name, value }),
   );
-  await renderEcharts(getDeviceCountPieChartOptions(data));
+  await renderEcharts(getDeviceCountPieChartOptions(data, isDark.value));
 }
 
 /** 监听数据变化 */
@@ -48,6 +51,13 @@ watch(
     initChart();
   },
   { deep: true },
+);
+
+watch(
+  () => isDark.value,
+  () => {
+    initChart();
+  },
 );
 
 /** 组件挂载时初始化图表 */
