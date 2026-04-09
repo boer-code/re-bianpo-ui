@@ -124,7 +124,8 @@ onMounted(() => {
                 <IconifyIcon icon="mdi:chip" class="text-xl" />
               </div>
               <div class="ml-3 min-w-0 flex-1">
-                <div class="device-title">{{ item.deviceName }}</div>
+                <div class="device-title">{{ item.nickname }}</div>
+                <div class="device-subtitle">{{ item.deviceName }}</div>
               </div>
               <DictTag
                 :type="DICT_TYPE.IOT_DEVICE_STATE"
@@ -273,8 +274,17 @@ onMounted(() => {
       text-overflow: ellipsis;
       font-size: 15px;
       font-weight: 600;
-      line-height: 36px;
+      line-height: 20px;
       white-space: nowrap;
+    }
+
+    .device-subtitle {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      line-height: 16px;
+      white-space: nowrap;
+      opacity: 0.65;
     }
 
     // 状态标签
@@ -402,6 +412,10 @@ html.dark {
     .device-card {
       .device-title {
         color: rgb(255 255 255 / 85%);
+      }
+
+      .device-subtitle {
+        color: rgb(255 255 255 / 65%);
       }
 
       .info-list {

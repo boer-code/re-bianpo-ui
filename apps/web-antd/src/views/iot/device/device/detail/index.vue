@@ -25,6 +25,7 @@ import DeviceDetailsPayloadMapping from './modules/payload-mapping.vue';
 import DeviceDetailsSimulator from './modules/simulator.vue';
 import DeviceDetailsSubDevice from './modules/sub-device.vue';
 import DeviceDetailsThingModel from './modules/thing-model.vue';
+import DeviceDetailsThingModelTrend from './modules/thing-model-trend.vue';
 
 defineOptions({ name: 'IoTDeviceDetail' });
 
@@ -113,6 +114,8 @@ onMounted(async () => {
       :product="product"
       @refresh="() => getDeviceData(id)"
     />
+
+    <DeviceDetailsThingModelTrend :device-id="device.id" />
 
     <Tabs v-model:active-key="activeTab" class="mt-4">
       <Tabs.TabPane key="info" tab="设备信息">
