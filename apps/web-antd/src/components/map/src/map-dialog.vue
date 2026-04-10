@@ -1,12 +1,12 @@
-<!-- 地图选择弹窗组件：基于百度地图 GL 实现 -->
 <script setup lang="ts">
 import { nextTick, reactive, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Button, Form, Input, Select, Space } from 'ant-design-vue';
+import { Button, Form, Input, Select, Space, message } from 'ant-design-vue';
 
-import { loadBaiduMapSdk } from './utils';
+import { reverseGeocodeByLocation, searchLocationByKeyword } from './tianditu-service';
+import { loadTianDiTuMapSdk } from './utils';
 
 const emit = defineEmits<{
   confirm: [
@@ -28,139 +28,175 @@ const state = reactive({
   map: null as any, // 百度地图实例
   mapAddressOptions: [] as any[], // 地址搜索选项
   mapMarker: null as any, // 地图标记点
-  geocoder: null as any, // 地理编码器实例
   mapContainerReady: false, // 地图容器是否准备好
 });
 
-// 初始经纬度（打开弹窗时传入）
 const initLongitude = ref<number | undefined>();
 const initLatitude = ref<number | undefined>();
+const tdtTk = ref('');
+const currentMapBound = ref('-180,-90,180,90');
+const currentMapLevel = ref(12);
 
-/** 弹窗打开动画完成后初始化地图 */
+function createPoint(longitude: number | string, latitude: number | string) {
+  return new window.T.LngLat(Number(longitude), Number(latitude));
+}
+
+function addOverlayToMap(overlay: any) {
+  if (state.map?.addOverLay) {
+    state.map.addOverLay(overlay);
+    return;
+  }
+  if (state.map?.addOverlay) {
+    state.map.addOverlay(overlay);
+  }
+}
+
+function removeOverlayFromMap(overlay: any) {
+  if (!overlay) {
+    return;
+  }
+  if (state.map?.removeOverLay) {
+    state.map.removeOverLay(overlay);
+    return;
+  }
+  if (state.map?.removeOverlay) {
+    state.map.removeOverlay(overlay);
+  }
+}
+
+// 从当前地图视野提取 search2 所需参数：mapBound + level。
+function updateSearchContextFromMap() {
+  const map = state.map;
+  if (!map) {
+    currentMapBound.value = '-180,-90,180,90';
+    currentMapLevel.value = 12;
+    return;
+  }
+
+  const zoom = Number(map.getZoom?.() ?? 12);
+  currentMapLevel.value = Number.isFinite(zoom) ? zoom : 12;
+
+  const bounds = map.getBounds?.();
+  const southWest = bounds?.getSouthWest?.();
+  const northEast = bounds?.getNorthEast?.();
+  if (southWest && northEast) {
+    currentMapBound.value = `${southWest.lng},${southWest.lat},${northEast.lng},${northEast.lat}`;
+  }
+}
+
 async function handleDialogOpened() {
-  // 先显示地图容器
   state.mapContainerReady = true;
-
-  // 等待下一个 DOM 更新周期，确保地图容器已渲染
   await nextTick();
-  // 加载百度地图 SDK
-  await loadBaiduMapSdk();
+  await loadTianDiTuMapSdk();
+  tdtTk.value = import.meta.env.VITE_TIANDITU_TK || '';
   initMapInstance();
 }
 
 /** 弹窗关闭后清理地图 */
 function handleDialogClosed() {
-  // 销毁地图实例
-  if (state.map) {
-    state.map.destroy?.();
-    state.map = null;
+  if (state.map?.clearOverLays) {
+    state.map.clearOverLays();
   }
+  state.map = null;
   state.mapMarker = null;
-  state.geocoder = null;
   state.mapContainerReady = false;
 }
 
 /** 初始化地图实例 */
 function initMapInstance() {
-  if (!mapContainerRef.value) {
+  if (!mapContainerRef.value || !window.T) {
     return;
   }
 
-  // 初始化地图和地理编码器
   initMap();
-  initGeocoder();
 
-  // 监听地图点击事件
-  state.map.addEventListener('click', (e: any) => {
-    const point = e.latlng;
-    state.lonLat = `${point.lng},${point.lat}`;
-    regeoCode(state.lonLat);
+  state.map.addEventListener('click', async (event: any) => {
+    const point = event.lnglat || event.latlng;
+    if (!point) {
+      return;
+    }
+    const lng = point.lng;
+    const lat = point.lat;
+    state.lonLat = `${lng},${lat}`;
+    await regeoCode(state.lonLat);
   });
 
-  // 如果有初始经纬度，加载标记点
-  if (initLongitude.value && initLatitude.value) {
-    const lonLat = `${initLongitude.value},${initLatitude.value}`;
-    regeoCode(lonLat);
+  state.map.addEventListener('moveend', () => {
+    updateSearchContextFromMap();
+  });
+  state.map.addEventListener('zoomend', () => {
+    updateSearchContextFromMap();
+  });
+
+  if (initLongitude.value != null && initLatitude.value != null) {
+    void regeoCode(`${initLongitude.value},${initLatitude.value}`);
   }
+
+  updateSearchContextFromMap();
 }
 
 /** 初始化地图 */
 function initMap() {
-  state.map = new window.BMapGL.Map(mapContainerRef.value);
-  state.map.centerAndZoom(new window.BMapGL.Point(116.404, 39.915), 11);
-  state.map.enableScrollWheelZoom();
-  state.map.disableDoubleClickZoom();
-
-  state.map.addControl(new window.BMapGL.NavigationControl());
-  state.map.addControl(new window.BMapGL.ScaleControl());
-  state.map.addControl(new window.BMapGL.ZoomControl());
+  state.map = new window.T.Map(mapContainerRef.value);
+  const defaultPoint = createPoint(116.404, 39.915);
+  state.map.centerAndZoom(defaultPoint, 11);
+  state.map.enableScrollWheelZoom?.();
 }
 
-/** 初始化地理编码器 */
-function initGeocoder() {
-  state.geocoder = new window.BMapGL.Geocoder();
-}
-
-/** 搜索地址 */
-function autoSearch(queryValue: string) {
+// 关键词检索：按文档要求携带 mapBound/level，保证 search2 不返回 400。
+async function autoSearch(queryValue: string) {
   if (!queryValue) {
     state.mapAddressOptions = [];
     return;
   }
+  if (!tdtTk.value) {
+    message.warning('请先配置天地图 TK');
+    return;
+  }
+
+  updateSearchContextFromMap();
 
   state.loading = true;
-
-  // noinspection JSUnusedGlobalSymbols
-  const localSearch = new window.BMapGL.LocalSearch(state.map, {
-    onSearchComplete: (results: any) => {
-      state.loading = false;
-      const temp: any[] = [];
-
-      if (results && results._pois) {
-        results._pois.forEach((p: any) => {
-          const point = p.point;
-          if (point && point.lng && point.lat) {
-            temp.push({
-              name: p.title,
-              value: `${point.lng},${point.lat}`,
-            });
-          }
-        });
-      }
-
-      state.mapAddressOptions = temp;
-    },
-  });
-
-  localSearch.search(queryValue);
+  try {
+    state.mapAddressOptions = await searchLocationByKeyword(queryValue, tdtTk.value, {
+      mapBound: currentMapBound.value,
+      level: currentMapLevel.value,
+    });
+    if (!state.mapAddressOptions.length) {
+      message.warning('未搜索到匹配地址，请尝试更具体的关键字');
+    }
+  } catch {
+    message.error('地址搜索失败，请稍后重试');
+  } finally {
+    state.loading = false;
+  }
 }
 
 /** 处理地址选择 */
 function handleAddressSelect(value: string) {
   if (value) {
-    regeoCode(value);
+    void regeoCode(value);
   }
 }
 
 /** 添加标记点 */
 function setMarker(lnglat: string[]) {
-  if (!lnglat) {
+  if (!lnglat || lnglat.length !== 2) {
     return;
   }
 
   if (state.mapMarker !== null) {
-    state.map.removeOverlay(state.mapMarker);
+    removeOverlayFromMap(state.mapMarker);
   }
 
-  const point = new window.BMapGL.Point(lnglat[0], lnglat[1]);
-  state.mapMarker = new window.BMapGL.Marker(point);
-
-  state.map.addOverlay(state.mapMarker);
+  const point = createPoint(lnglat[0]!, lnglat[1]!);
+  state.mapMarker = new window.T.Marker(point);
+  addOverlayToMap(state.mapMarker);
   state.map.centerAndZoom(point, 16);
 }
 
-/** 经纬度转地址、添加标记点 */
-function regeoCode(lonLat: string) {
+// 统一处理点击地图和选中搜索结果后的坐标回填与逆地理编码。
+async function regeoCode(lonLat: string) {
   if (!lonLat) {
     return;
   }
@@ -169,23 +205,27 @@ function regeoCode(lonLat: string) {
     return;
   }
 
-  state.longitude = lnglat[0]!;
-  state.latitude = lnglat[1]!;
-  const point = new window.BMapGL.Point(lnglat[0], lnglat[1]);
-  state.map.centerAndZoom(point, 16);
+  const longitude = Number(lnglat[0]);
+  const latitude = Number(lnglat[1]);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+    return;
+  }
 
-  setMarker(lnglat);
-  getAddress(lnglat);
-}
+  state.longitude = String(longitude);
+  state.latitude = String(latitude);
 
-/** 根据经纬度获取地址信息 */
-function getAddress(lnglat: string[]) {
-  const point = new window.BMapGL.Point(lnglat[0], lnglat[1]);
-  state.geocoder.getLocation(point, (result: any) => {
-    if (result && result.address) {
-      state.address = result.address;
-    }
-  });
+  setMarker([state.longitude, state.latitude]);
+
+  if (!tdtTk.value) {
+    state.address = '';
+    return;
+  }
+
+  try {
+    state.address = await reverseGeocodeByLocation(longitude, latitude, tdtTk.value);
+  } catch {
+    state.address = '';
+  }
 }
 
 /** 确认选择 */
@@ -203,7 +243,7 @@ function handleConfirm() {
 const [Modal, modalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      handleDialogOpened();
+      void handleDialogOpened();
     } else {
       handleDialogClosed();
     }
@@ -225,7 +265,7 @@ defineExpose({ open });
 </script>
 
 <template>
-  <Modal :footer="false" class="w-[700px]" title="百度地图">
+  <Modal :footer="false" class="w-[700px]" title="天地图">
     <div class="w-full">
       <!-- 第一行：位置搜索 -->
       <Form :label-col="{ span: 4 }">

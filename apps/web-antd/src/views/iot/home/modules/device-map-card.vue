@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router';
 import { Card, Empty, Spin } from 'ant-design-vue';
 
 import { getDeviceLocationList } from '#/api/iot/device/device';
-import { loadBaiduMapSdk } from '#/components/map';
+import { loadTianDiTuMapSdk } from '#/components/map';
 import { DeviceStateEnum } from '#/views/iot/utils/constants';
 
 defineOptions({ name: 'DeviceMapCard' });
@@ -41,8 +41,7 @@ function getStateConfig(state: number): { color: string; name: string } {
   };
 }
 
-/** 创建自定义标记点图标 */
-function createMarkerIcon(color: string, isOnline: boolean) {
+function buildMarkerSvg(color: string, isOnline: boolean) {
   const size = isOnline ? 24 : 20;
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">
@@ -50,47 +49,77 @@ function createMarkerIcon(color: string, isOnline: boolean) {
       ${isOnline ? `<circle cx="12" cy="12" r="10" fill="none" stroke="${color}" stroke-width="2" opacity="0.5"/>` : ''}
     </svg>
   `;
-  const blob = new Blob([svg], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(blob);
-  return new window.BMapGL.Icon(url, new window.BMapGL.Size(size, size), {
-    anchor: new window.BMapGL.Size(size / 2, size / 2),
+  return {
+    size,
+    url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+  };
+}
+
+function createPoint(longitude: number, latitude: number) {
+  return new window.T.LngLat(longitude, latitude);
+}
+
+function addOverlayToMap(overlay: any) {
+  if (mapInstance?.addOverLay) {
+    mapInstance.addOverLay(overlay);
+    return;
+  }
+  if (mapInstance?.addOverlay) {
+    mapInstance.addOverlay(overlay);
+  }
+}
+
+function bindInfoWindow(marker: any, point: any, infoContent: string) {
+  marker.addEventListener('click', () => {
+    const options: Record<string, any> = {};
+    if (window.T.Point) {
+      options.offset = new window.T.Point(0, -20);
+    }
+
+    const infoWindow = new window.T.InfoWindow(infoContent, options);
+
+    // 信息窗口打开后绑定链接点击事件
+    setTimeout(() => {
+      const link = document.querySelector('.device-link');
+      if (link) {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const deviceId = (e.target as HTMLElement).dataset.id;
+          if (deviceId) {
+            router.push({
+              name: 'IoTDeviceDetail',
+              params: { id: deviceId },
+            });
+          }
+        });
+      }
+    }, 100);
+
+    if (mapInstance?.openInfoWindow) {
+      mapInstance.openInfoWindow(infoWindow, point);
+      return;
+    }
+    marker.openInfoWindow?.(infoWindow);
   });
 }
 
-/** 初始化地图 */
-function initMap() {
-  if (!mapContainerRef.value || !window.BMapGL) {
-    return;
-  }
+function createMarker(device: IotDeviceApi.Device) {
+  const config = getStateConfig(device.state!);
+  const isOnline = device.state === DeviceStateEnum.ONLINE;
+  const point = createPoint(device.longitude!, device.latitude!);
+  const marker = new window.T.Marker(point);
 
-  // 销毁旧实例
-  if (mapInstance) {
-    mapInstance.destroy?.();
-    mapInstance = null;
-  }
-
-  // 创建地图实例，默认以中国为中心
-  mapInstance = new window.BMapGL.Map(mapContainerRef.value);
-  mapInstance.centerAndZoom(new window.BMapGL.Point(106, 37.5), 5);
-  mapInstance.enableScrollWheelZoom();
-
-  // 添加控件
-  mapInstance.addControl(new window.BMapGL.ScaleControl());
-  mapInstance.addControl(new window.BMapGL.ZoomControl());
-
-  // 添加设备标记点
-  deviceList.value.forEach((device) => {
-    const config = getStateConfig(device.state!);
-    const isOnline = device.state === DeviceStateEnum.ONLINE;
-    const point = new window.BMapGL.Point(device.longitude, device.latitude);
-
-    // 创建标记
-    const marker = new window.BMapGL.Marker(point, {
-      icon: createMarkerIcon(config.color, isOnline),
+  if (marker.setIcon && window.T.Icon && window.T.Point) {
+    const { size, url } = buildMarkerSvg(config.color, isOnline);
+    const icon = new window.T.Icon({
+      iconUrl: url,
+      iconSize: new window.T.Point(size, size),
+      iconAnchor: new window.T.Point(size / 2, size / 2),
     });
+    marker.setIcon(icon);
+  }
 
-    // 创建信息窗口内容
-    const infoContent = `
+  const infoContent = `
       <div style="padding: 8px; min-width: 180px;">
         <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">${device.nickname || device.deviceName}</div>
         <div style="color: #666; font-size: 12px; line-height: 1.8;">
@@ -98,42 +127,30 @@ function initMap() {
           <div>状态: <span style="color: ${config.color}; font-weight: 500;">${config.name}</span></div>
         </div>
         <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
-          <a href="javascript:void(0)" class="device-link" data-id="${device.id}" style="color: #1890ff; font-size: 12px; text-decoration: none;">点击查看详情 →</a>
+          <a href="javascript:void(0)" class="device-link" data-id="${device.id}" style="color: #1890ff; font-size: 12px; text-decoration: none;">点击查看详情 -></a>
         </div>
       </div>
     `;
 
-    // 点击标记显示信息窗口
-    marker.addEventListener('click', () => {
-      const infoWindow = new window.BMapGL.InfoWindow(infoContent, {
-        width: 220,
-        height: 140,
-        title: '',
-      });
+  bindInfoWindow(marker, point, infoContent);
+  addOverlayToMap(marker);
+}
 
-      // 信息窗口打开后绑定链接点击事件
-      infoWindow.addEventListener('open', () => {
-        setTimeout(() => {
-          const link = document.querySelector('.device-link');
-          if (link) {
-            link.addEventListener('click', (e) => {
-              e.preventDefault();
-              const deviceId = e.target as HTMLElement.dataset.id;
-              if (deviceId) {
-                router.push({
-                  name: 'IoTDeviceDetail',
-                  params: { id: deviceId },
-                });
-              }
-            });
-          }
-        }, 100);
-      });
+/** 初始化地图 */
+function initMap() {
+  if (!mapContainerRef.value || !window.T) {
+    return;
+  }
 
-      mapInstance.openInfoWindow(infoWindow, point);
-    });
+  mapInstance = new window.T.Map(mapContainerRef.value);
+  mapInstance.centerAndZoom(createPoint(106, 37.5), 5);
+  mapInstance.enableScrollWheelZoom?.();
 
-    mapInstance.addOverlay(marker);
+  deviceList.value.forEach((device) => {
+    if (device.longitude == null || device.latitude == null) {
+      return;
+    }
+    createMarker(device);
   });
 }
 
@@ -153,7 +170,7 @@ async function init() {
   if (!hasData.value) {
     return;
   }
-  await loadBaiduMapSdk();
+  await loadTianDiTuMapSdk();
   initMap();
 }
 
@@ -164,10 +181,10 @@ onMounted(() => {
 
 /** 组件卸载时销毁地图实例 */
 onUnmounted(() => {
-  if (mapInstance) {
-    mapInstance.destroy?.();
-    mapInstance = null;
+  if (mapInstance?.clearOverLays) {
+    mapInstance.clearOverLays();
   }
+  mapInstance = null;
 });
 </script>
 

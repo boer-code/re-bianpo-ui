@@ -1,63 +1,54 @@
-/* eslint-disable @typescript-eslint/no-dynamic-delete */
-/**
- * 百度地图 SDK 加载工具
- */
+interface TianDiTuLoaderOptions {
+  tk?: string;
+  timeout?: number;
+}
 
-// 扩展 Window 接口以包含百度地图 GL API
 declare global {
   interface Window {
-    BMapGL: any;
+    T: any;
   }
 }
 
-// 全局回调名称
-const CALLBACK_NAME = '__BAIDU_MAP_LOAD_CALLBACK__';
-
-// SDK 加载状态
-let loadPromise: null | Promise<void> = null;
+let tianDiTuLoadPromise: null | Promise<void> = null;
 
 /**
- * 加载百度地图 GL SDK
- * @param timeout 超时时间（毫秒），默认 10000
- * @returns Promise<void>
+ * 加载天地图 JS SDK
  */
-export const loadBaiduMapSdk = (timeout = 10_000): Promise<void> => {
-  // 已加载完成
-  if (window.BMapGL) {
+export const loadTianDiTuMapSdk = ({
+  tk = import.meta.env.VITE_TIANDITU_TK,
+  timeout = 10_000,
+}: TianDiTuLoaderOptions = {}): Promise<void> => {
+  if (window.T) {
     return Promise.resolve();
   }
-
-  // 正在加载中，返回同一个 Promise
-  if (loadPromise) {
-    return loadPromise;
+  if (!tk) {
+    return Promise.reject(new Error('天地图 TK 未配置'));
+  }
+  if (tianDiTuLoadPromise) {
+    return tianDiTuLoadPromise;
   }
 
-  loadPromise = new Promise((resolve, reject) => {
+  tianDiTuLoadPromise = new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      loadPromise = null;
-      reject(new Error('百度地图 SDK 加载超时'));
+      tianDiTuLoadPromise = null;
+      reject(new Error('天地图 SDK 加载超时'));
     }, timeout);
 
-    // 全局回调
-    (window as any)[CALLBACK_NAME] = () => {
-      clearTimeout(timeoutId);
-      delete (window as any)[CALLBACK_NAME];
-      resolve();
-    };
-
-    // 创建 script 标签
     const script = document.createElement('script');
-    script.src = `https://api.map.baidu.com/api?v=1.0&type=webgl&ak=${
-      import.meta.env.VITE_BAIDU_MAP_KEY
-    }&callback=${CALLBACK_NAME}`;
-    script.addEventListener('onerror', () => {
+    script.src = `https://api.tianditu.gov.cn/api?v=4.0&tk=${tk}`;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener('load', () => {
       clearTimeout(timeoutId);
-      loadPromise = null;
-      delete (window as any)[CALLBACK_NAME];
-      reject(new Error('百度地图 SDK 加载失败'));
+      resolve();
+    });
+    script.addEventListener('error', () => {
+      clearTimeout(timeoutId);
+      tianDiTuLoadPromise = null;
+      reject(new Error('天地图 SDK 加载失败'));
     });
     document.body.append(script);
   });
 
-  return loadPromise;
+  return tianDiTuLoadPromise;
 };
