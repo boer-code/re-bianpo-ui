@@ -114,7 +114,7 @@ onMounted(async () => {
       :product="product"
       @refresh="() => getDeviceData(id)"
     />
-
+    <!--  设备属性趋势图  -->
     <DeviceDetailsThingModelTrend :device-id="device.id" />
 
     <Tabs v-model:active-key="activeTab" class="mt-4">
