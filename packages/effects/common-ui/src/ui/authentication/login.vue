@@ -197,7 +197,7 @@ defineExpose({
       </div>
     </slot>
 
-    <!-- 萌新必读 -->
-    <DocLink />
+<!--    &lt;!&ndash; 萌新必读 &ndash;&gt;-->
+<!--    <DocLink />-->
   </div>
 </template>

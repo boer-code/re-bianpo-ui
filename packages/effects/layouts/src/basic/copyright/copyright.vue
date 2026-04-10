@@ -14,7 +14,6 @@ defineOptions({
 withDefaults(defineProps<Props>(), {
   companyName: 'Vben Admin',
   companySiteLink: '',
-  date: '2024',
   icp: '',
   icpLink: '',
 });
@@ -33,7 +32,7 @@ withDefaults(defineProps<Props>(), {
     </a>
 
     <!-- Copyright Text -->
-    Copyright © {{ date }}
+    Copyright © 2026
 
     <!-- Company Link -->
     <a
