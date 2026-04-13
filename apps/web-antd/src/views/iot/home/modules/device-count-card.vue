@@ -15,6 +15,7 @@ defineOptions({ name: 'DeviceCountCard' });
 const props = defineProps<{
   loading?: boolean;
   statsData: IotStatisticsApi.StatisticsSummaryRespVO;
+  deviceGroupDeviceCounts: Record<string, number>;
 }>();
 
 const { isDark } = usePreferences();
@@ -24,11 +25,8 @@ const { renderEcharts } = useEcharts(deviceCountChartRef);
 
 /** 是否有数据 */
 const hasData = computed(() => {
-  if (!props.statsData) return false;
-  const categories = Object.entries(
-    props.statsData.productCategoryDeviceCounts || {},
-  );
-  return categories.length > 0 && props.statsData.deviceCount !== 0;
+  const groups = Object.entries(props.deviceGroupDeviceCounts || {});
+  return groups.length > 0;
 });
 
 /** 初始化图表 */
@@ -38,7 +36,7 @@ async function initChart() {
   }
 
   await nextTick();
-  const data = Object.entries(props.statsData.productCategoryDeviceCounts).map(
+  const data = Object.entries(props.deviceGroupDeviceCounts).map(
     ([name, value]) => ({ name, value }),
   );
   await renderEcharts(getDeviceCountPieChartOptions(data, isDark.value));
@@ -46,7 +44,7 @@ async function initChart() {
 
 /** 监听数据变化 */
 watch(
-  () => props.statsData,
+  () => props.deviceGroupDeviceCounts,
   () => {
     initChart();
   },

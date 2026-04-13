@@ -32,7 +32,7 @@ const iconName = computed(() => iconMap[props.icon] || iconMap.menu);
     class="relative h-40 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
   >
     <VbenLoading :spinning="loading" />
-    <CardContent class="flex h-full flex-col p-6">
+    <CardContent class="flex h-full flex-col justify-center p-6">
       <div class="mb-4 flex items-start justify-between">
         <div class="flex flex-1 flex-col">
           <span class="text-muted-foreground mb-2 text-sm font-medium">
@@ -48,15 +48,15 @@ const iconName = computed(() => iconMap[props.icon] || iconMap.menu);
         </div>
       </div>
 
-      <div class="border-border mt-auto border-t pt-3">
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-muted-foreground">今日新增</span>
-          <span v-if="todayCount === -1" class="text-muted-foreground">--</span>
-          <span v-else class="font-medium text-green-500">
-            +{{ todayCount }}
-          </span>
-        </div>
-      </div>
+<!--      <div class="border-border mt-auto border-t pt-3">-->
+<!--        <div class="flex items-center justify-between text-sm">-->
+<!--          <span class="text-muted-foreground">今日新增</span>-->
+<!--          <span v-if="todayCount === -1" class="text-muted-foreground">&#45;&#45;</span>-->
+<!--          <span v-else class="font-medium text-green-500">-->
+<!--            +{{ todayCount }}-->
+<!--          </span>-->
+<!--        </div>-->
+<!--      </div>-->
     </CardContent>
   </Card>
 </template>

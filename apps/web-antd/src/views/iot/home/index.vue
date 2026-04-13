@@ -7,6 +7,7 @@ import { ComparisonCard, Page } from '@vben/common-ui';
 
 import { Col, Row } from 'ant-design-vue';
 
+import { getSimpleDeviceGroupList } from '#/api/iot/device/group';
 import { getStatisticsSummary } from '#/api/iot/statistics';
 
 import { defaultStatsData } from './data';
@@ -19,17 +20,33 @@ defineOptions({ name: 'IoTHome' });
 
 const loading = ref(true);
 const statsData = ref<StatsData>(defaultStatsData);
+const deviceGroupCount = ref(0);
+const deviceGroupDeviceCounts = ref<Record<string, number>>({});
 
 /** 加载统计数据 */
 async function loadStatisticsData(): Promise<StatsData> {
   return await getStatisticsSummary();
 }
 
+/** 加载设备分组数据 */
+async function loadDeviceGroupData() {
+  const groups = await getSimpleDeviceGroupList();
+  deviceGroupCount.value = groups.length;
+  deviceGroupDeviceCounts.value = groups.reduce<Record<string, number>>(
+    (result, group) => {
+      result[group.name] = group.deviceCount ?? 0;
+      return result;
+    },
+    {},
+  );
+}
+
 /** 加载数据 */
 async function loadData() {
   loading.value = true;
   try {
-    statsData.value = await loadStatisticsData();
+    const [statistics] = await Promise.all([loadStatisticsData(), loadDeviceGroupData()]);
+    statsData.value = statistics;
   } finally {
     loading.value = false;
   }
@@ -47,9 +64,9 @@ onMounted(() => {
     <Row :gutter="16" class="mb-4">
       <Col :span="6">
         <ComparisonCard
-          title="分类数量"
-          :value="statsData.productCategoryCount"
-          :today-count="statsData.productCategoryTodayCount"
+          title="站点数量"
+          :value="deviceGroupCount"
+          :today-count="0"
           icon="menu"
           icon-color="text-blue-500"
           :loading="loading"
@@ -77,7 +94,7 @@ onMounted(() => {
       </Col>
       <Col :span="6">
         <ComparisonCard
-          title="设备消息数"
+          title="设备总消息数"
           :value="statsData.deviceMessageCount"
           :today-count="statsData.deviceMessageTodayCount"
           icon="message"
@@ -90,7 +107,11 @@ onMounted(() => {
     <!-- 第二行：图表 -->
     <Row :gutter="16" class="mb-4">
       <Col :span="12">
-        <DeviceCountCard :stats-data="statsData" :loading="loading" />
+        <DeviceCountCard
+          :stats-data="statsData"
+          :device-group-device-counts="deviceGroupDeviceCounts"
+          :loading="loading"
+        />
       </Col>
       <Col :span="12">
         <DeviceStateCountCard :stats-data="statsData" :loading="loading" />
