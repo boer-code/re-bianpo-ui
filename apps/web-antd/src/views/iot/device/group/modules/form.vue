@@ -21,8 +21,8 @@ const emit = defineEmits(['success']);
 const formData = ref<IotDeviceGroupApi.DeviceGroup>();
 const getTitle = computed(() => {
   return formData.value?.id
-    ? $t('ui.actionTitle.edit', ['设备分组'])
-    : $t('ui.actionTitle.create', ['设备分组']);
+    ? $t('ui.actionTitle.edit', ['站点'])
+    : $t('ui.actionTitle.create', ['站点']);
 });
 
 const [Form, formApi] = useVbenForm({

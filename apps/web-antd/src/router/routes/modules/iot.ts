@@ -30,6 +30,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import('#/views/iot/device/device/detail/index.vue'),
       },
       {
+        path: 'site/map/:id',
+        name: 'IoTSiteMap',
+        meta: {
+          title: '站点 3D 实景',
+          activePath: '/iot/device/group',
+        },
+        component: () => import('#/views/iot/device/group/site-map.vue'),
+      },
+      {
         path: 'ota/firmware/detail/:id',
         name: 'IoTOtaFirmwareDetail',
         meta: {

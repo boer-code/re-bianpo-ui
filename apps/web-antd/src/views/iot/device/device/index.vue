@@ -191,7 +191,7 @@ async function handleDeleteBatch() {
 /** 添加到分组 */
 function handleAddToGroup() {
   if (checkedIds.value.length === 0) {
-    message.warning('请选择要添加到分组的设备');
+    message.warning('请选择要绑定站点的设备');
     return;
   }
   deviceGroupFormModalApi.setData(checkedIds.value).open();
@@ -348,7 +348,7 @@ onMounted(async () => {
         </Select>
         <Select
           v-model:value="queryParams.groupId"
-          placeholder="请选择设备分组"
+          placeholder="请选择所属站点"
           allow-clear
           style="width: 200px"
         >
@@ -396,7 +396,7 @@ onMounted(async () => {
               onClick: handleImport,
             },
             {
-              label: '添加到分组',
+              label: '绑定站点',
               type: 'primary',
               icon: 'ant-design:folder-add-outlined',
               auth: ['iot:device:update'],

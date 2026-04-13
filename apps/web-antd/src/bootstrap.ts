@@ -12,6 +12,8 @@ import { useTitle } from '@vueuse/core';
 
 import { $t, setupI18n } from '#/locales';
 import { setupFormCreate } from '#/plugins/form-create';
+import VueCesium from 'vue-cesium';
+import 'vue-cesium/theme-default/index.css';
 
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
@@ -36,6 +38,7 @@ async function bootstrap(namespace: string) {
 
   const app = createApp(App);
   app.use(VueDOMPurifyHTML);
+  app.use(VueCesium);
 
   // 注册v-loading指令
   registerLoadingDirective(app, {

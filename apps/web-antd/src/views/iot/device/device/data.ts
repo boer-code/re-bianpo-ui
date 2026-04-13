@@ -94,14 +94,14 @@ export function useAdvancedFormSchema(): VbenFormSchema[] {
     },
     {
       fieldName: 'groupIds',
-      label: '设备分组',
+      label: '所属站点',
       component: 'ApiSelect',
       componentProps: {
         api: getSimpleDeviceGroupList,
         labelField: 'name',
         valueField: 'id',
         mode: 'multiple',
-        placeholder: '请选择设备分组',
+        placeholder: '请选择所属站点',
       },
     },
     {
@@ -172,14 +172,14 @@ export function useGroupFormSchema(): VbenFormSchema[] {
   return [
     {
       fieldName: 'groupIds',
-      label: '设备分组',
+      label: '所属站点',
       component: 'ApiSelect',
       componentProps: {
         api: getSimpleDeviceGroupList,
         labelField: 'name',
         valueField: 'id',
         mode: 'multiple',
-        placeholder: '请选择设备分组',
+        placeholder: '请选择所属站点',
       },
       rules: 'required',
     },
@@ -265,13 +265,13 @@ export function useGridFormSchema(): VbenFormSchema[] {
     },
     {
       fieldName: 'groupId',
-      label: '设备分组',
+      label: '所属站点',
       component: 'ApiSelect',
       componentProps: {
         api: getSimpleDeviceGroupList,
         labelField: 'name',
         valueField: 'id',
-        placeholder: '请选择设备分组',
+        placeholder: '请选择所属站点',
         allowClear: true,
       },
     },
@@ -317,7 +317,7 @@ export function useGridColumns(): VxeTableGridOptions['columns'] {
     },
     {
       field: 'groupIds',
-      title: '所属分组',
+      title: '所属站点',
       minWidth: 150,
       slots: { default: 'groups' },
     },
