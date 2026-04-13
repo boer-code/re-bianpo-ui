@@ -82,6 +82,7 @@ async function getAdvancedFormValues() {
     serialNumber: formData.value?.serialNumber,
     longitude: formData.value?.longitude,
     latitude: formData.value?.latitude,
+    altitude: formData.value?.altitude,
   };
 }
 

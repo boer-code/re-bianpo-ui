@@ -24,6 +24,7 @@ export namespace IotDeviceApi {
     config?: string; // 设备配置
     latitude?: number; // 设备位置的纬度
     longitude?: number; // 设备位置的经度
+    altitude?: number; // 设备位置的海拔（米）
     createTime?: Date; // 创建时间
   }
 
@@ -140,6 +141,14 @@ export function getDeviceListByProductId(productId: number) {
 /** 获取设备位置列表（用于地图展示） */
 export function getDeviceLocationList() {
   return requestClient.get<IotDeviceApi.Device[]>('/iot/device/location-list');
+}
+
+/** 按站点获取设备位置列表（用于 3D 山体展示） */
+export function getDeviceLocationListByGroup(groupId: number) {
+  return requestClient.get<IotDeviceApi.Device[]>(
+    '/iot/device/location-list-by-group',
+    { params: { groupId } },
+  );
 }
 
 /** 获取导入模板 */

@@ -153,6 +153,17 @@ export function useAdvancedFormSchema(): VbenFormSchema[] {
         .optional()
         .nullable(),
     },
+    {
+      fieldName: 'altitude',
+      label: '设备海拔(米)',
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: '请输入设备海拔',
+        class: 'w-full',
+        precision: 2,
+      },
+      rules: z.number().optional().nullable(),
+    },
   ];
 }
 
