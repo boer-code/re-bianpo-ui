@@ -14,6 +14,7 @@ export namespace IotStatisticsApi {
     deviceOnlineCount: number; // 在线数量
     deviceOfflineCount: number; // 离线数量
     deviceInactiveCount: number; // 待激活设备数量
+    alertRecordCount: number; // 告警次数
     productCategoryDeviceCounts: Record<string, number>; // 按品类统计的设备数量
   }
 

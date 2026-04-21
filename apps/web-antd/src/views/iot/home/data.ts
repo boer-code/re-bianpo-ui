@@ -16,5 +16,6 @@ export const defaultStatsData: StatsData = {
   deviceOnlineCount: 0,
   deviceOfflineCount: 0,
   deviceInactiveCount: 0,
+  alertRecordCount: 0,
   productCategoryDeviceCounts: {},
 };
