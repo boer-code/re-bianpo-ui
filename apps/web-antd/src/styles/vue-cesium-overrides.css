@@ -1,0 +1,15 @@
+.bg-accent {
+  background: hsl(var(--accent)) !important;
+}
+
+.bg-primary {
+  background: hsl(var(--primary)) !important;
+}
+
+.text-accent {
+  color: hsl(var(--accent)) !important;
+}
+
+.text-primary {
+  color: hsl(var(--primary)) !important;
+}

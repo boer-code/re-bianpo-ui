@@ -14,6 +14,7 @@ import { $t, setupI18n } from '#/locales';
 import { setupFormCreate } from '#/plugins/form-create';
 import VueCesium from 'vue-cesium';
 import 'vue-cesium/theme-default/index.css';
+import './styles/vue-cesium-overrides.css';
 
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
