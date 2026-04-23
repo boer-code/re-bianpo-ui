@@ -52,6 +52,7 @@
     "bpmn-js-properties-panel": "catalog:",
     "bpmn-js-token-simulation": "catalog:",
     "camunda-bpmn-moddle": "catalog:",
+    "cobe": "^2.0.1",
     "cropperjs": "catalog:",
     "dayjs": "catalog:",
     "diagram-js": "catalog:",

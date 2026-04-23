@@ -104,7 +104,7 @@ const logoSrc = computed(() => {
     </slot>
 
     <!-- 系统介绍 -->
-    <div v-if="!authPanelCenter" class="relative hidden w-0 flex-1 lg:block">
+    <div v-if="!authPanelCenter" class="auth-slogan-panel relative w-0 flex-1">
       <div
         class="bg-background-deep absolute inset-0 h-full w-full dark:bg-[#070709]"
       >
@@ -117,20 +117,26 @@ const logoSrc = computed(() => {
             '-enter-x': authPanelRight,
           }"
         >
-          <template v-if="sloganImage">
-            <img
+          <slot name="slogan">
+            <template v-if="sloganImage">
+              <img
+                :alt="appName"
+                :src="sloganImage"
+                class="animate-float h-64 w-2/5"
+              />
+            </template>
+            <SloganIcon
+              v-else
               :alt="appName"
-              :src="sloganImage"
               class="animate-float h-64 w-2/5"
             />
-          </template>
-          <SloganIcon v-else :alt="appName" class="animate-float h-64 w-2/5" />
-          <div class="text-1xl text-foreground mt-6 font-sans lg:text-2xl">
-            {{ pageTitle }}
-          </div>
-          <div class="dark:text-muted-foreground mt-2">
-            {{ pageDescription }}
-          </div>
+            <div class="text-1xl text-foreground mt-6 font-sans lg:text-2xl">
+              {{ pageTitle }}
+            </div>
+            <div class="dark:text-muted-foreground mt-2">
+              {{ pageDescription }}
+            </div>
+          </slot>
         </div>
       </div>
     </div>
@@ -172,6 +178,16 @@ const logoSrc = computed(() => {
 </template>
 
 <style scoped>
+.auth-slogan-panel {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-slogan-panel {
+    display: block;
+  }
+}
+
 .login-background {
   background: linear-gradient(
     154deg,

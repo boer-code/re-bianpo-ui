@@ -5,6 +5,7 @@ import { AuthPageLayout } from '@vben/layouts';
 import { preferences } from '@vben/preferences';
 
 import { $t } from '#/locales';
+import LoginGlobe from '#/views/_core/authentication/components/login-globe.vue';
 
 const appName = computed(() => preferences.app.name);
 const logo = computed(() => preferences.logo.source);
@@ -21,5 +22,8 @@ const logoDark = computed(() => preferences.logo.sourceDark);
   >
     <!-- 自定义工具栏 -->
     <!-- <template #toolbar></template> -->
+    <template #slogan>
+      <LoginGlobe />
+    </template>
   </AuthPageLayout>
 </template>
