@@ -90,13 +90,13 @@ const globeTheme = computed(() => {
   }
 
   return {
-    arcColor: [0.12, 0.48, 0.86] as [number, number, number],
-    baseColor: [0.58, 0.76, 0.94] as [number, number, number],
-    dark: 0.18,
-    glowColor: [0.86, 0.94, 1] as [number, number, number],
-    mapBaseBrightness: 0.22,
-    mapBrightness: 5.6,
-    markerColor: [0.08, 0.42, 0.82] as [number, number, number],
+    arcColor: [0.15, 0.28, 0.48] as [number, number, number],
+    baseColor: [0.97, 0.98, 1] as [number, number, number],
+    dark: 0.02,
+    glowColor: [0.7, 0.8, 0.92] as [number, number, number],
+    mapBaseBrightness: 0.03,
+    mapBrightness: 2.8,
+    markerColor: [0.16, 0.25, 0.42] as [number, number, number],
   };
 });
 
@@ -237,10 +237,10 @@ onBeforeUnmount(() => {
 <style scoped>
 .login-globe {
   --login-globe-accent-rgb: 37 99 235;
-  --login-globe-accent-soft-rgb: 125 211 252;
-  --login-globe-halo-opacity: 14%;
-  --login-globe-orbit-opacity: 20%;
-  --login-globe-scan-opacity: 0.42;
+  --login-globe-accent-soft-rgb: 51 65 85;
+  --login-globe-halo-opacity: 18%;
+  --login-globe-orbit-opacity: 34%;
+  --login-globe-scan-opacity: 0.44;
 
   display: flex;
   width: min(100%, 620px);
@@ -312,10 +312,7 @@ onBeforeUnmount(() => {
 .login-globe__orbit {
   z-index: 3;
   border: 1px solid
-    rgb(
-      var(--login-globe-accent-soft-rgb) /
-        var(--login-globe-orbit-opacity)
-    );
+    rgb(var(--login-globe-accent-soft-rgb) / var(--login-globe-orbit-opacity));
   box-shadow:
     inset 0 0 26px rgb(var(--login-globe-accent-rgb) / 8%),
     0 0 22px rgb(var(--login-globe-accent-rgb) / 8%);
