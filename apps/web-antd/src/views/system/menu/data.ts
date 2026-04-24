@@ -123,7 +123,7 @@ export function useFormSchema(): VbenFormSchema[] {
       rules: z.string(),
       help: '访问的路由地址，如：`user`。如需外网地址时，则以 `http(s)://` 开头',
       dependencies: {
-        triggerFields: ['type', 'parentId'],
+        triggerFields: ['type', 'parentId', 'path'],
         show: (values) => {
           return [SystemMenuTypeEnum.DIR, SystemMenuTypeEnum.MENU].includes(
             values.type,
