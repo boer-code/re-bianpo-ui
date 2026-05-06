@@ -83,14 +83,92 @@ export function getDeviceStateGaugeChartOptions(
   title: string,
   isDark = false,
 ): any {
-  const neonColorMap: Record<string, [string, string]> = {
-    '#52c41a': ['#8EFFA1', '#39E67A'],
-    '#ff4d4f': ['#FF9BB0', '#FF5E7A'],
-    '#1890ff': ['#72E3FF', '#6A7BFF'],
+  const gaugePaletteMap: Record<
+    string,
+    {
+      dark: {
+        accent: string;
+        endColor: string;
+        glow: string;
+        startColor: string;
+      };
+      light: {
+        accent: string;
+        endColor: string;
+        glow: string;
+        startColor: string;
+      };
+    }
+  > = {
+    '#52c41a': {
+      dark: {
+        accent: '#7CFF97',
+        glow: '#39E67A',
+        startColor: '#A7FFC2',
+        endColor: '#39E67A',
+      },
+      light: {
+        accent: '#15803D',
+        glow: '#22C55E',
+        startColor: '#4ADE80',
+        endColor: '#15803D',
+      },
+    },
+    '#ff4d4f': {
+      dark: {
+        accent: '#FF92A6',
+        glow: '#FF5E7A',
+        startColor: '#FFC0CB',
+        endColor: '#FF5E7A',
+      },
+      light: {
+        accent: '#DC2626',
+        glow: '#F87171',
+        startColor: '#FB7185',
+        endColor: '#DC2626',
+      },
+    },
+    '#1890ff': {
+      dark: {
+        accent: '#72E3FF',
+        glow: '#6A7BFF',
+        startColor: '#72E3FF',
+        endColor: '#6A7BFF',
+      },
+      light: {
+        accent: '#2563EB',
+        glow: '#60A5FA',
+        startColor: '#38BDF8',
+        endColor: '#2563EB',
+      },
+    },
   };
 
-  const [startColor, endColor] = neonColorMap[color] ?? [`${color}E6`, color];
-  const axisLineBg = isDark ? '#2F3747' : '#E5E7EB';
+  const themePalette = (gaugePaletteMap[color] ?? {
+    dark: {
+      accent: color,
+      glow: color,
+      startColor: `${color}E6`,
+      endColor: color,
+    },
+    light: {
+      accent: color,
+      glow: color,
+      startColor: `${color}CC`,
+      endColor: color,
+    },
+  })[isDark ? 'dark' : 'light'];
+
+  const axisLineBg = isDark ? '#2F3747' : '#E2E8F0';
+  const titleColor = isDark ? '#A8B3C8' : '#64748B';
+  const valueShadowColor = isDark
+    ? `${themePalette.glow}66`
+    : `${themePalette.glow}33`;
+  const valueShadowBlur = isDark ? 18 : 10;
+  const ringShadowColor = isDark
+    ? `${themePalette.glow}99`
+    : `${themePalette.glow}4D`;
+  const ringShadowBlur = isDark ? 18 : 12;
 
   return {
     series: [
@@ -116,16 +194,16 @@ export function getDeviceStateGaugeChartOptions(
               colorStops: [
                 {
                   offset: 0,
-                  color: startColor,
+                  color: themePalette.startColor,
                 },
                 {
                   offset: 1,
-                  color: endColor,
+                  color: themePalette.endColor,
                 },
               ],
             },
-            shadowColor: `${endColor}99`,
-            shadowBlur: 18,
+            shadowColor: ringShadowColor,
+            shadowBlur: ringShadowBlur,
           },
         },
         axisLine: {
@@ -143,13 +221,15 @@ export function getDeviceStateGaugeChartOptions(
           show: true,
           offsetCenter: [0, '100%'],
           fontSize: 14,
-          color: '#A8B3C8',
+          color: titleColor,
         },
         detail: {
           valueAnimation: true,
           fontSize: 30,
           fontWeight: 700,
-          color: endColor,
+          color: themePalette.accent,
+          textShadowColor: valueShadowColor,
+          textShadowBlur: valueShadowBlur,
           offsetCenter: [0, '8%'],
           formatter: (val: number) => `${val} 个`,
         },
@@ -166,7 +246,9 @@ export function getDeviceCountPieChartOptions(
   data: Array<{ name: string; value: number }>,
   isDark = false,
 ): any {
-  const tooltipBackground = isDark ? 'rgba(17, 24, 39, 0.92)' : 'rgba(255, 255, 255, 0.96)';
+  const tooltipBackground = isDark
+    ? 'rgba(17, 24, 39, 0.92)'
+    : 'rgba(255, 255, 255, 0.96)';
   const tooltipBorder = isDark
     ? 'rgba(114, 227, 255, 0.35)'
     : 'rgba(59, 130, 246, 0.25)';
