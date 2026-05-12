@@ -18,11 +18,12 @@ const times = ref<[Dayjs, Dayjs]>(); // 日期范围
 
 const rangePickerProps = getRangePickerDefaultProps();
 const timeRangeOptions = [
+  rangePickerProps.presets[0]!, // 当天
   rangePickerProps.presets[3]!, // 昨天
   rangePickerProps.presets[1]!, // 最近 7 天
   rangePickerProps.presets[2]!, // 最近 30 天
 ];
-const timeRangeType = ref(timeRangeOptions[1]!.label); // 默认选中第一个选项
+const timeRangeType = ref(timeRangeOptions[2]!.label); // 默认选中最近 7 天
 
 /** 设置时间范围 */
 function setTimes() {
