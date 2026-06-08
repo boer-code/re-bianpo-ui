@@ -1,5 +1,9 @@
 import { requestClient } from '#/api/request';
 
+import type { DeviceMessageSummaryByDateParams } from './query';
+
+import { serializeDeviceMessageSummaryByDateParams } from './query';
+
 export namespace IotStatisticsApi {
   /** 统计摘要数据 */
   export interface StatisticsSummaryRespVO {
@@ -38,10 +42,7 @@ export namespace IotStatisticsApi {
   }
 
   /** 设备消息统计请求 */
-  export interface DeviceMessageReqVO {
-    interval: number;
-    times?: string[];
-  }
+  export type DeviceMessageReqVO = DeviceMessageSummaryByDateParams;
 }
 
 /** 获取 IoT 统计摘要数据 */
@@ -57,6 +58,11 @@ export function getDeviceMessageSummaryByDate(
 ) {
   return requestClient.get<IotStatisticsApi.DeviceMessageSummaryByDateRespVO[]>(
     '/iot/statistics/get-device-message-summary-by-date',
-    { params },
+    { params: serializeDeviceMessageSummaryByDateParams(params) },
   );
 }
+
+export {
+  createFullDayDateTimeRange,
+  createLast7DaysDateTimeRange,
+} from './query';

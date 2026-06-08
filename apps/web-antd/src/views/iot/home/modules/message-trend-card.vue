@@ -12,7 +12,11 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import { Card, Empty, Select } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { getDeviceMessageSummaryByDate } from '#/api/iot/statistics';
+import {
+  createFullDayDateTimeRange,
+  createLast7DaysDateTimeRange,
+  getDeviceMessageSummaryByDate,
+} from '#/api/iot/statistics';
 import ShortcutDateRangePicker from '#/components/shortcut-date-range-picker/shortcut-date-range-picker.vue';
 
 import { getMessageTrendChartOptions } from '../chart-options';
@@ -34,15 +38,10 @@ const dateRange = ref<[string, string]>([
   dayjs().format('YYYY-MM-DD'),
 ]);
 
-/** 将日期范围转换为带时分秒的格式 */
-function formatDateRangeWithTime(dates: [string, string]): [string, string] {
-  return [`${dates[0]} 00:00:00`, `${dates[1]} 23:59:59`];
-}
-
 /** 查询参数 */
 const queryParams = reactive<IotStatisticsApi.DeviceMessageReqVO>({
   interval: 1, // 默认按天
-  times: formatDateRangeWithTime(dateRange.value),
+  times: createLast7DaysDateTimeRange(),
 });
 
 /** 是否有数据 */
@@ -72,8 +71,7 @@ function handleDateRangeChange(times?: [Dayjs, Dayjs]) {
     dayjs(times[0]).format('YYYY-MM-DD'),
     dayjs(times[1]).format('YYYY-MM-DD'),
   ];
-  // 将选择的日期转换为带时分秒的格式（开始日期 00:00:00，结束日期 23:59:59）
-  queryParams.times = formatDateRangeWithTime(dateRange.value);
+  queryParams.times = createFullDayDateTimeRange(times[0], times[1]);
   handleQuery();
 }
 
