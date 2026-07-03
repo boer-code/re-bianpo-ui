@@ -23,4 +23,7 @@ export const overridesPreferences = defineOverridesPreferences({
     companyName: import.meta.env.VITE_APP_TITLE,
     companySiteLink: 'http://www.boersmart.com/',
   },
+  logo: {
+    source: '/logo.svg',
+  },
 });
