@@ -22,7 +22,7 @@ import DeviceDetailsInfo from './modules/info.vue';
 import DeviceDetailsMessage from './modules/message.vue';
 import DeviceModbusConfig from './modules/modbus-config.vue';
 import DeviceDetailsPayloadMapping from './modules/payload-mapping.vue';
-import DeviceDetailsSimulator from './modules/simulator.vue';
+import DeviceDetailsSendCommand from './modules/send-command.vue';
 import DeviceDetailsSubDevice from './modules/sub-device.vue';
 import DeviceDetailsThingModel from './modules/thing-model.vue';
 import DeviceDetailsThingModelTrend from './modules/thing-model-trend.vue';
@@ -155,12 +155,11 @@ onMounted(async () => {
           :device-id="device.id"
         />
       </Tabs.TabPane>
-      <Tabs.TabPane key="simulator" tab="模拟设备">
-        <DeviceDetailsSimulator
-          v-if="activeTab === 'simulator'"
+      <Tabs.TabPane key="send-command" tab="发送指令">
+        <DeviceDetailsSendCommand
+          v-if="activeTab === 'send-command'"
           :device="device"
           :product="product"
-          :thing-model-list="thingModelList"
         />
       </Tabs.TabPane>
       <Tabs.TabPane key="config" tab="设备配置">

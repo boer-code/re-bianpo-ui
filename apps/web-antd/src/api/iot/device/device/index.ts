@@ -210,6 +210,11 @@ export function sendDeviceMessage(params: IotDeviceApi.DeviceMessageSendReq) {
   return requestClient.post('/iot/device/message/send', params);
 }
 
+/** 发送 raw 设备消息（透传原始 JSON） */
+export function sendRawDeviceMessage(data: { deviceId: number; payload: string }) {
+  return requestClient.post('/iot/device/message/send-raw', data);
+}
+
 /** 绑定子设备到网关设备 */
 export function bindDeviceGateway(gatewayId: number, subIds: number[]) {
   return requestClient.put<boolean>('/iot/device/bind-gateway', {

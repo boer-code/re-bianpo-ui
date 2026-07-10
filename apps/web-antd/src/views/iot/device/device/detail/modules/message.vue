@@ -20,9 +20,13 @@ import { Button, Select, Space, Switch, Tag } from 'ant-design-vue';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getDeviceMessagePage } from '#/api/iot/device/device';
 
-const props = defineProps<{
-  deviceId: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    deviceId: number;
+    compact?: boolean;
+  }>(),
+  { compact: false },
+);
 
 /** 查询参数 */
 const queryParams = reactive({
@@ -45,7 +49,7 @@ const methodOptions = computed(() => {
 
 /** Grid 列定义 */
 function useGridColumns(): VxeTableGridOptions['columns'] {
-  return [
+  const columns: VxeTableGridOptions['columns'] = [
     {
       field: 'ts',
       title: '时间',
@@ -58,21 +62,27 @@ function useGridColumns(): VxeTableGridOptions['columns'] {
       width: 100,
       slots: { default: 'upstream' },
     },
-    {
-      field: 'reply',
-      title: '是否回复',
-      width: 100,
-      cellRender: {
-        name: 'CellDict',
-        props: { type: DICT_TYPE.INFRA_BOOLEAN_STRING },
+  ];
+  if (!props.compact) {
+    columns.push(
+      {
+        field: 'reply',
+        title: '是否回复',
+        width: 100,
+        cellRender: {
+          name: 'CellDict',
+          props: { type: DICT_TYPE.INFRA_BOOLEAN_STRING },
+        },
       },
-    },
-    {
-      field: 'requestId',
-      title: '请求编号',
-      width: 280,
-      showOverflow: 'tooltip',
-    },
+      {
+        field: 'requestId',
+        title: '请求编号',
+        width: 280,
+        showOverflow: 'tooltip',
+      },
+    );
+  }
+  columns.push(
     {
       field: 'method',
       title: '请求方法',
@@ -86,14 +96,15 @@ function useGridColumns(): VxeTableGridOptions['columns'] {
       showOverflow: 'tooltip',
       slots: { default: 'params' },
     },
-  ];
+  );
+  return columns;
 }
 
 /** 创建 Grid 实例 */
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns: useGridColumns(),
-    height: 'auto',
+    height: props.compact ? 420 : 'auto',
     proxyConfig: {
       ajax: {
         query: async ({ page }) => {
@@ -180,7 +191,7 @@ defineExpose({
 </script>
 
 <template>
-  <Page auto-content-height>
+  <component :is="compact ? 'div' : Page" :auto-content-height="!compact">
     <!-- 搜索区域 -->
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <Select
@@ -239,5 +250,5 @@ defineExpose({
         <span v-else>{{ row.params }}</span>
       </template>
     </Grid>
-  </Page>
+  </component>
 </template>
