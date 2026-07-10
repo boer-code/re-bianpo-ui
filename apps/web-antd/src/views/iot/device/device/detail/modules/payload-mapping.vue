@@ -4,6 +4,7 @@ import type { ThingModelData } from '#/api/iot/thingmodel';
 
 import { computed, onMounted, ref, watch } from 'vue';
 
+import { Page } from '@vben/common-ui';
 import { message, Space } from 'ant-design-vue';
 
 import {
@@ -121,7 +122,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-card :loading="loading" title="映射配置">
+  <Page auto-content-height>
+    <a-card :loading="loading" title="映射配置">
     <a-form layout="inline" class="payload-mapping-form mb-3">
       <a-form-item label="通道键">
         <a-input v-model:value="form.channelKey" placeholder="U3D1" />
@@ -195,6 +197,7 @@ onMounted(() => {
       </a-table-column>
     </a-table>
   </a-card>
+  </Page>
 </template>
 
 <style scoped lang="scss">

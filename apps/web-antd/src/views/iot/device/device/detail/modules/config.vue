@@ -4,6 +4,7 @@ import type { IotDeviceApi } from '#/api/iot/device/device';
 
 import { computed, ref, watchEffect } from 'vue';
 
+import { Page } from '@vben/common-ui';
 import { IotDeviceMessageMethodEnum } from '@vben/constants';
 
 import { Alert, Button, message, Textarea } from 'ant-design-vue';
@@ -126,8 +127,8 @@ async function updateDeviceConfig() {
 </script>
 
 <template>
-  <div>
-    <!-- 使用说明提示 -->
+  <Page auto-content-height>
+      <!-- 使用说明提示 -->
     <Alert
       class="my-4"
       description="如需编辑文件，请点击下方编辑按钮"
@@ -171,7 +172,7 @@ async function updateDeviceConfig() {
         配置推送
       </Button>
     </div>
-  </div>
+  </Page>
 </template>
 
 <style scoped>

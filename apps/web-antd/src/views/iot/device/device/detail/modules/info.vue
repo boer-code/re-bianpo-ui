@@ -4,6 +4,7 @@ import type { IotProductApi } from '#/api/iot/product/product';
 
 import { computed, ref } from 'vue';
 
+import { Page } from '@vben/common-ui';
 import { DICT_TYPE } from '@vben/constants';
 import { IconifyIcon } from '@vben/icons';
 import { formatDateTime } from '@vben/utils';
@@ -74,7 +75,7 @@ function handleAuthInfoDialogClose() {
 </script>
 
 <template>
-  <div>
+  <Page auto-content-height>
     <Card title="设备信息">
       <Descriptions :column="3" bordered size="small">
         <Descriptions.Item label="产品名称">
@@ -191,5 +192,5 @@ function handleAuthInfoDialogClose() {
 
     <!-- 地图弹窗 -->
     <MapDialog ref="mapDialogRef" />
-  </div>
+  </Page>
 </template>
